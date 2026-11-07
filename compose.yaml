@@ -1,0 +1,18 @@
+services:
+  web:
+    image: node:24-slim
+    working_dir: /app
+    user: "${LOCAL_UID:-501}:${LOCAL_GID:-20}"
+    command: npm run dev
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - .:/app
+    environment:
+      HOST: 0.0.0.0
+      HOME: /tmp
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 256
+    mem_limit: 1g
+    tmpfs: [/tmp]

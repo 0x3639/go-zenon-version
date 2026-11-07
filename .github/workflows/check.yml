@@ -1,0 +1,23 @@
+name: Check application
+on: [pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    container: node:24-bookworm
+    steps:
+      - uses: actions/checkout@v6
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+  discovery:
+    runs-on: ubuntu-latest
+    container: golang:1.24
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v6
+      - run: go test -race ./...
+      - run: go build ./...
