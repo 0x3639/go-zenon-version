@@ -68,10 +68,10 @@ func loadConfig() config {
 }
 
 type store struct {
-	mu          sync.RWMutex
-	snapshot    Snapshot
-	body, nodes []byte
-	etag        string
+	mu               sync.RWMutex
+	snapshot         Snapshot
+	body, nodes, ips []byte
+	etag             string
 }
 
 func (s *store) publish(snapshot Snapshot) {
@@ -80,11 +80,16 @@ func (s *store) publish(snapshot Snapshot) {
 		GeneratedAt string `json:"generatedAt"`
 		Nodes       []Node `json:"nodes"`
 	}{snapshot.GeneratedAt, snapshot.Nodes})
+	ips, _ := json.Marshal(struct {
+		GeneratedAt string     `json:"generatedAt"`
+		IPs         []IPRecord `json:"ips"`
+	}{snapshot.GeneratedAt, uniqueIPs(snapshot.Nodes)})
 	etag := fmt.Sprintf(`"%x"`, sha256.Sum256(body))
 	s.mu.Lock()
 	s.snapshot = snapshot
 	s.body = body
 	s.nodes = nodes
+	s.ips = ips
 	s.etag = etag
 	s.mu.Unlock()
 }
@@ -121,7 +126,7 @@ func handler(data *store, origins map[string]bool) http.Handler {
 			}
 			return
 		}
-		if r.URL.Path != "/api/v1/network" && r.URL.Path != "/api/v1/nodes" {
+		if r.URL.Path != "/api/v1/network" && r.URL.Path != "/api/v1/nodes" && r.URL.Path != "/api/v1/ips" {
 			http.Error(w, `{"error":"not found"}`, 404)
 			return
 		}
@@ -140,6 +145,8 @@ func handler(data *store, origins map[string]bool) http.Handler {
 		}
 		if r.URL.Path == "/api/v1/nodes" {
 			w.Write(data.nodes)
+		} else if r.URL.Path == "/api/v1/ips" {
+			w.Write(data.ips)
 		} else {
 			w.Write(data.body)
 		}
@@ -157,17 +164,6 @@ func mergeNode(nodes map[string]Node, n Node) {
 	old.Sources = uniqueAll(old.Sources, n.Sources)
 	old.RPCEndpoints = uniqueAll(old.RPCEndpoints, n.RPCEndpoints)
 	old.ReportedVersions = uniqueAll(old.ReportedVersions, n.ReportedVersions)
-	// A referral does not make an older direct version observation fresh.
-	if n.Evidence == "discovery" && old.Version != nil {
-		nodes[n.ID] = old
-		return
-	}
-	if n.Evidence != "discovery" {
-		old.Version = n.Version
-		old.Name = n.Name
-		old.Evidence = n.Evidence
-		old.Commit = n.Commit
-	}
 	if publicIP(n.IP) {
 		old.IP = n.IP
 	}
@@ -176,6 +172,17 @@ func mergeNode(nodes map[string]Node, n Node) {
 	}
 	if n.UDP != 0 {
 		old.UDP = n.UDP
+	}
+	// A referral does not make an older direct version observation fresh.
+	if (n.Evidence == "discovery" && old.Version != nil) || (n.Evidence == "peer" && old.Evidence == "p2p") {
+		nodes[n.ID] = old
+		return
+	}
+	if n.Evidence != "discovery" {
+		old.Version = n.Version
+		old.Name = n.Name
+		old.Evidence = n.Evidence
+		old.Commit = n.Commit
 	}
 	old.LastSeen = n.LastSeen
 	nodes[n.ID] = old
@@ -187,6 +194,31 @@ func uniqueAll(a, b []string) []string {
 	return a
 }
 
+func recordHandshake(nodes map[string]Node, candidate Node, name string, err error, stamp string) {
+	if err == nil {
+		direct := newNode(candidate.ID, candidate.IP, name, "enode://"+candidate.ID+"@"+netAddress(candidate), "p2p")
+		direct.TCP, direct.UDP, direct.LastSeen = candidate.TCP, candidate.UDP, stamp
+		mergeNode(nodes, direct)
+	}
+	n, exists := nodes[candidate.ID]
+	// Failed unobserved bootstrap candidates stay in the queue ledger, not peer totals.
+	if !exists || n.IP != candidate.IP || n.TCP != candidate.TCP {
+		return
+	}
+	result := &Handshake{Status: "failed", IP: candidate.IP, Port: candidate.TCP, AttemptedAt: stamp}
+	if n.Handshake != nil && n.Handshake.IP == candidate.IP && n.Handshake.Port == candidate.TCP {
+		result.LastSuccessAt = n.Handshake.LastSuccessAt
+	}
+	if err == nil {
+		result.Status = "confirmed"
+		result.LastSuccessAt = stamp
+	} else {
+		result.Error = bounded(err.Error(), 200)
+	}
+	n.Handshake = result
+	nodes[n.ID] = n
+}
+
 type probeResult struct {
 	node           Node
 	neighbors      []Node
@@ -194,10 +226,11 @@ type probeResult struct {
 	name           string
 }
 
-func runScan(ctx context.Context, c config, key *ecdsa.PrivateKey, data *store) {
+func runScan(ctx context.Context, c config, key *ecdsa.PrivateKey, data *store, crawl *frontier) {
 	ctx, cancel := context.WithTimeout(ctx, c.budget)
 	defer cancel()
 	old := data.current()
+	crawl.beginPass()
 	nodes := map[string]Node{}
 	sources := []Source{}
 	started := now()
@@ -215,14 +248,16 @@ func runScan(ctx context.Context, c config, key *ecdsa.PrivateKey, data *store) 
 			list = append(list, n)
 		}
 		sort.Slice(list, func(i, j int) bool { return list[i].ID < list[j].ID })
-		data.publish(Snapshot{SchemaVersion: 1, StartedAt: started, GeneratedAt: now(), Mode: "discovery", Nodes: list, Sources: append([]Source{}, sources...), Limited: limited, Release: release, Scanning: scanning, PillarCount: pillarCount, PillarCountCheckedAt: pillarChecked})
+		data.publish(Snapshot{SchemaVersion: 1, StartedAt: started, GeneratedAt: now(), Mode: "discovery", Nodes: list, Sources: append([]Source{}, sources...), Limited: limited, Release: release, Scanning: scanning, PillarCount: pillarCount, PillarCountCheckedAt: pillarChecked, Crawl: crawl.progress()})
 	}
 	publish(true)
+	seedCtx, seedCancel := context.WithTimeout(ctx, c.budget/4)
+	defer seedCancel()
 	for _, seed := range c.seeds {
 		if ctx.Err() != nil {
 			break
 		}
-		observed, source := readSeed(ctx, seed)
+		observed, source := readSeed(seedCtx, seed)
 		sources = append(sources, source)
 		for _, n := range observed {
 			mergeNode(nodes, n)
@@ -234,7 +269,7 @@ func runScan(ctx context.Context, c config, key *ecdsa.PrivateKey, data *store) 
 			var result struct {
 				Count int `json:"count"`
 			}
-			if seedRPC(ctx, source.Endpoint, "embedded.pillar.getAll", &result, 0, 1) == nil && result.Count > 0 {
+			if seedRPC(seedCtx, source.Endpoint, "embedded.pillar.getAll", &result, 0, 1) == nil && result.Count > 0 {
 				pillarCount = &result.Count
 				pillarChecked = now()
 			}
@@ -242,95 +277,101 @@ func runScan(ctx context.Context, c config, key *ecdsa.PrivateKey, data *store) 
 		}
 	}
 	if release == nil {
-		release = latestRelease(ctx)
+		release = latestRelease(seedCtx)
 	} else if checked, e := time.Parse(time.RFC3339, release.CheckedAt); e != nil || time.Since(checked) > 24*time.Hour {
-		if r := latestRelease(ctx); r != nil {
+		if r := latestRelease(seedCtx); r != nil {
 			release = r
 		}
 	}
 	publish(true)
-	queue := []Node{}
-	queued := map[string]bool{}
-	enqueue := func(n Node) {
-		if !queued[n.ID] && publicIP(n.IP) && validID(n.ID) {
-			queued[n.ID] = true
-			queue = append(queue, n)
-		}
-	}
-	// Rotate previously seen nodes so a scan budget never permanently starves the same tail.
 	for _, n := range nodes {
-		enqueue(n)
+		crawl.observe(n)
 	}
-	// Rotate the upstream bootstrap set as well as the observed peer queue.
-	seedOffset := int(time.Now().Unix()/int64(c.interval.Seconds())) % len(p2p.DefaultSeeders)
-	for i := 0; i < min(24, len(p2p.DefaultSeeders)); i++ {
-		raw := p2p.DefaultSeeders[(seedOffset+i)%len(p2p.DefaultSeeders)]
+	// Every upstream bootstrap endpoint enters the durable queue, not a rotating subset.
+	for _, raw := range p2p.DefaultSeeders {
 		if n, e := discover.ParseNode(raw); e == nil {
 			candidate := newNode(n.ID.String(), n.IP.String(), "", "bootstrap", "discovery")
-			candidate.TCP = n.TCP
-			candidate.UDP = n.UDP
-			enqueue(candidate)
+			candidate.TCP, candidate.UDP = n.TCP, n.UDP
+			crawl.observe(candidate)
 		}
 	}
+	checkpoint := func() {
+		if e := writeJSONAtomic(filepath.Join(c.dir, "network.json"), data.current()); e != nil {
+			log.Printf("snapshot save: %v", e)
+		}
+		if e := crawl.save(c.dir); e != nil {
+			log.Printf("crawl save: %v", e)
+		}
+	}
+	publish(true)
+	checkpoint()
 	checked := 0
-	for len(queue) > 0 && checked < c.max && ctx.Err() == nil {
-		size := min(c.workers, len(queue), c.max-checked)
-		batch := queue[:size]
-		queue = queue[size:]
+	for len(crawl.Pending) > 0 && checked < c.max && ctx.Err() == nil {
+		size := min(c.workers, len(crawl.Pending), c.max-checked)
+		batch := crawl.take(size)
 		checked += size
 		results := make(chan probeResult, size)
 		for _, candidate := range batch {
 			go func(n Node) {
-				neighbors, udpErr := discoverNeighbors(ctx, key, n)
+				// Discovery is a separate UDP exchange; the TCP hello does not contain a peer list.
+				udp := make(chan probeResult, 1)
+				go func() {
+					neighbors, err := discoverNeighbors(ctx, key, n)
+					udp <- probeResult{neighbors: neighbors, udpErr: err}
+				}()
 				name, tcpErr := probeVersion(ctx, key, n)
-				results <- probeResult{n, neighbors, udpErr, tcpErr, name}
+				r := <-udp
+				results <- probeResult{n, r.neighbors, r.udpErr, tcpErr, name}
 			}(candidate)
 		}
 		for range size {
 			r := <-results
 			endpoint := "enode://" + r.node.ID + "@" + netAddress(r.node)
 			source := Source{Endpoint: endpoint, Status: "error", PeerCount: len(r.neighbors), CheckedAt: now()}
-			if r.tcpErr == nil {
-				n := newNode(r.node.ID, r.node.IP, r.name, endpoint, "p2p")
-				n.TCP = r.node.TCP
-				n.UDP = r.node.UDP
-				mergeNode(nodes, n)
-				source.Status = "ok"
-				source.NodeID = &n.ID
+			interrupted := ctx.Err() != nil && r.tcpErr != nil
+			if interrupted {
+				crawl.retryInterrupted(r.node)
+				source.Error = "scan paused; handshake remains queued"
 			} else {
-				source.Error = bounded(r.tcpErr.Error(), 200)
+				crawl.finish(r.node, r.tcpErr == nil, source.CheckedAt)
+				if r.tcpErr == nil {
+					source.Status = "ok"
+					source.NodeID = &r.node.ID
+				} else {
+					source.Error = bounded(r.tcpErr.Error(), 200)
+				}
 			}
-			// Report discovery success separately from the version handshake.
 			if r.udpErr == nil {
-				sources = append(sources, Source{Endpoint: "discovery://" + netAddress(r.node), Status: "ok", PeerCount: len(r.neighbors), NodeID: &r.node.ID, CheckedAt: now()})
+				udpEndpoint := "discovery://" + netAddress(r.node)
+				// This node itself answered with its authenticated identity, even if TCP declined.
+				observed := newNode(r.node.ID, r.node.IP, "", udpEndpoint, "discovery")
+				observed.TCP, observed.UDP = r.node.TCP, r.node.UDP
+				mergeNode(nodes, observed)
+				if n, exists := nodes[r.node.ID]; exists {
+					n.LastDiscoveryAt = source.CheckedAt
+					nodes[n.ID] = n
+				}
+				sources = append(sources, Source{Endpoint: udpEndpoint, Status: "ok", PeerCount: len(r.neighbors), NodeID: &r.node.ID, CheckedAt: source.CheckedAt})
+			}
+			if !interrupted {
+				recordHandshake(nodes, r.node, r.name, r.tcpErr, source.CheckedAt)
 			}
 			sources = append(sources, source)
 			for _, neighbor := range r.neighbors {
 				mergeNode(nodes, neighbor)
-				if len(queued) < c.max*4 {
-					enqueue(neighbor)
-				} else {
-					limited = true
-				}
+				crawl.observe(neighbor)
 			}
 		}
 		publish(true)
+		checkpoint()
 	}
-	limited = limited || len(queue) > 0 || ctx.Err() != nil
+	if len(crawl.Pending) == 0 && checked > 0 {
+		crawl.CompletedPasses++
+	}
+	limited = len(crawl.Pending) > 0 || crawl.Capped
 	publish(false)
-	snapshot := data.current()
-	if len(snapshot.Nodes) > 0 {
-		body, _ := json.MarshalIndent(snapshot, "", "  ")
-		temp := filepath.Join(c.dir, "network.json.tmp")
-		if e := os.WriteFile(temp, body, 0600); e == nil {
-			if e = os.Rename(temp, filepath.Join(c.dir, "network.json")); e != nil {
-				log.Printf("snapshot save: %v", e)
-			}
-		} else {
-			log.Printf("snapshot save: %v", e)
-		}
-	}
-	log.Printf("scan complete: %d nodes, %d peers probed, limited=%v", len(nodes), checked, limited)
+	checkpoint()
+	log.Printf("scan slice complete: %d observed nodes, %d endpoints attempted, %d queued, completed passes=%d", len(nodes), checked, len(crawl.Pending), crawl.CompletedPasses)
 }
 func netAddress(n Node) string {
 	host := n.IP
@@ -370,17 +411,25 @@ func main() {
 		}
 	}
 	data.publish(initial)
+	crawl, err := loadFrontier(c.dir)
+	if err != nil {
+		log.Fatal("cannot restore crawl queue: ", err)
+	}
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 	done := make(chan struct{})
 	go func() {
 		defer close(done)
 		for {
-			runScan(ctx, c, key, data)
+			runScan(ctx, c, key, data, crawl)
+			delay := c.interval
+			if len(crawl.Pending) > 0 {
+				delay = 5 * time.Second
+			}
 			select {
 			case <-ctx.Done():
 				return
-			case <-time.After(c.interval):
+			case <-time.After(delay):
 			}
 		}
 	}()

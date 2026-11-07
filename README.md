@@ -40,12 +40,12 @@ Alternatively, from `backend/`, deploy `compose.yaml` as a Coolify Compose appli
 | Variable | Default | Meaning |
 | --- | --- | --- |
 | `PORT` | `8080` | API listen port |
-| `DATA_DIR` | `/data` | Private discovery identity and cached snapshot |
+| `DATA_DIR` | `/data` | Private discovery identity, cached snapshot, and durable crawl queue |
 | `ALLOWED_ORIGINS` | `https://0x3639.com,https://0x3639.github.io` | Comma-separated browser origins; no wildcard |
 | `SEED_URLS` | The three seeds below | Comma-separated WSS/HTTPS RPC endpoints, maximum 8 |
-| `SCAN_INTERVAL` | `10m` | Pause between completed scans |
-| `SCAN_BUDGET` | `3m` | Maximum scan duration (10s–10m) |
-| `MAX_NODES` | `256` | Maximum P2P candidates probed per scan (1–1000) |
+| `SCAN_INTERVAL` | `10m` | Pause after the entire known queue is drained; unfinished batches resume after 5 seconds |
+| `SCAN_BUDGET` | `3m` | Maximum duration of one batch (10s–10m); remaining work stays queued |
+| `MAX_NODES` | `256` | Maximum endpoint attempts per batch (1–1000), not a cap on total coverage |
 | `CONCURRENCY` | `4` | Simultaneous peer probes (1–8) |
 
 Default seeds:
@@ -54,7 +54,9 @@ Default seeds:
 - `wss://node.zenonhub.io:35998`
 - `wss://node.atsocy.com:35998`
 
-The service retains observations for 24 hours, rotates candidates and bootstrap nodes between scans, queries three random discovery targets per responsive UDP peer, preserves its discovery identity across restarts, and publishes partial results as a scan progresses. The configured budget can limit coverage; inspect `limited`, `scanning`, and individual `lastSeen` values. The API reports observed peer identities, not registered pillars or confirmed chain membership. Handshake observations are of nodes reachable from the Zenon seed/discovery graph, but the service does not execute the chain-status handshake or validate a genesis hash. `pillarCount` is a separate on-chain registry count from `embedded.pillar.getAll`, with its own check timestamp; it is not a denominator for peer coverage.
+The service retains observations for 24 hours and stores its pending queue in `/data/crawl.json`. Every discovered public endpoint and every upstream bootstrap seed enters that queue. It attempts an authenticated TCP/RLPx hello and queries three random UDP discovery targets per peer, adds new neighbors, and resumes unfinished batches after five seconds. A completed pass means every currently known endpoint was attempted, including failures; it does not mean every node in the network was reached. Later passes retry retained endpoints after `SCAN_INTERVAL`. The queue and results are checkpointed after each batch of concurrent probes, so a restart resumes pending work. Interrupted probes return to the queue rather than being recorded as failed connections. The queue is bounded at 5,000 candidate endpoints, and `crawl.capped` exposes that limit. Inspect `crawl.pending`, `crawl.completedPasses`, `limited`, `scanning`, and each observation timestamp. The API reports observed peer identities, not registered pillars or confirmed chain membership. Handshake observations are of nodes reachable from the Zenon seed/discovery graph, but the service does not execute the chain-status handshake or validate a genesis hash. `pillarCount` is a separate on-chain registry count from `embedded.pillar.getAll`, with its own check timestamp; it is not a denominator for peer coverage.
+
+The peer explorer labels **go-zenon seeds** by public-key membership in the validator's `p2p.DefaultSeeders` list, and **RPC seeds** by the configured endpoints' own identities. Use **Filter by node role** to show either type, all seeds, or other peers. CSV exports include those roles. Seed-list membership does not imply reachability: only observed peers enter node totals. The 116-entry catalog in `src/go-zenon-seeds.ts` is pinned to upstream commit `bb39e31c608dc397a91b98b21b096bca99a9f4d6` and matches the backend's `v0.0.9-alphanet` dependency; refresh it when updating the upstream seed list. IP addresses alone never assign a seed label.
 
 ### API
 
@@ -62,12 +64,15 @@ The service retains observations for 24 hours, rotates candidates and bootstrap 
 | --- | --- |
 | `GET /api/v1/network` | Full snapshot: nodes, source successes/failures, scan state, release metadata |
 | `GET /api/v1/nodes` | `{ generatedAt, nodes }` |
+| `GET /api/v1/ips` | `{ generatedAt, ips }`: one record per observed public IP, with all node identities and direct-connection counts |
 | `GET /healthz` | Process health, scan state, observation count, last update |
 | `GET /readyz` | 200 once observations exist, otherwise 503 |
 
 Endpoints support HEAD and OPTIONS. Data responses use ETags and 30-second caching. There is no public scan trigger, target parameter, or mutation API. Anyone can read the public data; CORS controls which browser origins can consume it, not authentication.
 
-Node fields include `id` (128-character public key), `ip`, `name`, `version` (nullable), `reportedVersions`, `evidence`, `sources`, `rpcEndpoints`, `firstSeen`, `lastSeen`, and P2P ports. Evidence is `p2p`, `rpc`, `peer`, or `discovery`. Versions are self-reported; authenticated P2P identity does not prove the running binary.
+Node fields include `id` (128-character public key), `ip`, `name`, `version` (nullable), `reportedVersions`, `evidence`, `sources`, `rpcEndpoints`, `firstSeen`, `lastSeen`, and P2P ports. Evidence is `p2p`, `rpc`, `peer`, or `discovery`. Optional `handshake` records contain `status` (`confirmed` or `failed`), the checked `ip` and `port`, `attemptedAt`, `lastSuccessAt`, and an error for unsuccessful attempts. `lastDiscoveryAt` records an authenticated UDP response. Referrals cannot refresh direct proof; changing an address or port requires a new check. Failed retries preserve earlier successful timestamps and advertised peers, since NAT, firewalls, connection limits, and peer policy can block inbound access. Versions are self-reported; authenticated P2P identity does not prove the running binary.
+
+Peer identities and endpoint attempts are deduplicated separately. The IP endpoint and **Unique IPs** CSV export group addresses while preserving distinct keys behind the same IP. The frontend can filter by P2P result and shows observed unique IPs separately from candidate counts. Listed but unobserved bootstrap endpoints remain in the crawl ledger and never inflate the observed-node count.
 
 ## Publish the frontend on GitHub Pages
 

@@ -11,19 +11,41 @@ import (
 )
 
 type Node struct {
-	ID               string   `json:"id"`
-	IP               string   `json:"ip"`
-	Name             string   `json:"name"`
-	Version          *string  `json:"version"`
-	ReportedVersions []string `json:"reportedVersions"`
-	Commit           *string  `json:"commit"`
-	Evidence         string   `json:"evidence"`
-	Sources          []string `json:"sources"`
-	RPCEndpoints     []string `json:"rpcEndpoints"`
-	FirstSeen        string   `json:"firstSeen"`
-	LastSeen         string   `json:"lastSeen"`
-	TCP              uint16   `json:"tcpPort,omitempty"`
-	UDP              uint16   `json:"udpPort,omitempty"`
+	ID               string     `json:"id"`
+	IP               string     `json:"ip"`
+	Name             string     `json:"name"`
+	Version          *string    `json:"version"`
+	ReportedVersions []string   `json:"reportedVersions"`
+	Commit           *string    `json:"commit"`
+	Evidence         string     `json:"evidence"`
+	Sources          []string   `json:"sources"`
+	RPCEndpoints     []string   `json:"rpcEndpoints"`
+	FirstSeen        string     `json:"firstSeen"`
+	LastSeen         string     `json:"lastSeen"`
+	TCP              uint16     `json:"tcpPort,omitempty"`
+	UDP              uint16     `json:"udpPort,omitempty"`
+	Handshake        *Handshake `json:"handshake,omitempty"`
+	LastDiscoveryAt  string     `json:"lastDiscoveryAt,omitempty"`
+}
+
+// A result belongs to a specific endpoint. Referrals never refresh this evidence.
+type Handshake struct {
+	Status        string `json:"status"`
+	IP            string `json:"ip"`
+	Port          uint16 `json:"port"`
+	AttemptedAt   string `json:"attemptedAt"`
+	LastSuccessAt string `json:"lastSuccessAt,omitempty"`
+	Error         string `json:"error,omitempty"`
+}
+type CrawlProgress struct {
+	Candidates      int  `json:"candidates"`
+	Pending         int  `json:"pending"`
+	Attempted       int  `json:"attempted"`
+	Confirmed       int  `json:"confirmed"`
+	UniqueIPs       int  `json:"uniqueIPs"`
+	ConfirmedIPs    int  `json:"confirmedIPs"`
+	CompletedPasses int  `json:"completedPasses"`
+	Capped          bool `json:"capped"`
 }
 type Source struct {
 	Endpoint  string  `json:"endpoint"`
@@ -40,17 +62,18 @@ type Release struct {
 	CheckedAt string `json:"checkedAt"`
 }
 type Snapshot struct {
-	SchemaVersion        int      `json:"schemaVersion"`
-	StartedAt            string   `json:"startedAt"`
-	GeneratedAt          string   `json:"generatedAt"`
-	Mode                 string   `json:"mode"`
-	Nodes                []Node   `json:"nodes"`
-	Sources              []Source `json:"sources"`
-	Limited              bool     `json:"limited"`
-	Release              *Release `json:"release"`
-	Scanning             bool     `json:"scanning"`
-	PillarCount          *int     `json:"pillarCount"`
-	PillarCountCheckedAt string   `json:"pillarCountCheckedAt,omitempty"`
+	SchemaVersion        int            `json:"schemaVersion"`
+	StartedAt            string         `json:"startedAt"`
+	GeneratedAt          string         `json:"generatedAt"`
+	Mode                 string         `json:"mode"`
+	Nodes                []Node         `json:"nodes"`
+	Sources              []Source       `json:"sources"`
+	Limited              bool           `json:"limited"`
+	Release              *Release       `json:"release"`
+	Scanning             bool           `json:"scanning"`
+	PillarCount          *int           `json:"pillarCount"`
+	PillarCountCheckedAt string         `json:"pillarCountCheckedAt,omitempty"`
+	Crawl                *CrawlProgress `json:"crawl,omitempty"`
 }
 
 func now() string { return time.Now().UTC().Format(time.RFC3339) }

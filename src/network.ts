@@ -18,6 +18,17 @@ export interface NodeRecord {
   rpcEndpoints: string[];
   firstSeen: string;
   lastSeen: string;
+  tcpPort?: number;
+  udpPort?: number;
+  handshake?: {
+    status: 'confirmed' | 'failed';
+    ip: string;
+    port: number;
+    attemptedAt: string;
+    lastSuccessAt?: string;
+    error?: string;
+  };
+  lastDiscoveryAt?: string;
 }
 export interface SourceResult {
   endpoint: string;
@@ -40,6 +51,16 @@ export interface Snapshot {
   scanning?: boolean;
   pillarCount?: number | null;
   pillarCountCheckedAt?: string;
+  crawl?: {
+    candidates: number;
+    pending: number;
+    attempted: number;
+    confirmed: number;
+    uniqueIPs: number;
+    confirmedIPs: number;
+    completedPasses: number;
+    capped: boolean;
+  };
 }
 export type Rpc = (endpoint: string, method: string, signal: AbortSignal) => Promise<unknown>;
 const MAX_BYTES = 2_000_000;
@@ -292,16 +313,27 @@ export function parseSnapshot(value: unknown): Snapshot {
       !['peer', 'rpc', 'p2p', 'discovery'].includes(String(node.evidence)) ||
       !['sources', 'rpcEndpoints', 'reportedVersions'].every(k => Array.isArray(node[k]) && (node[k] as unknown[]).every(v => typeof v === 'string')) ||
       typeof node.lastSeen !== 'string' || !Number.isFinite(Date.parse(node.lastSeen))) throw new Error('Invalid saved peer.');
+    if (node.handshake !== undefined) {
+      const h = node.handshake;
+      if (!object(h) || !['confirmed', 'failed'].includes(String(h.status)) || typeof h.ip !== 'string' ||
+        !Number.isInteger(h.port) || Number(h.port) < 1024 || Number(h.port) > 65535 ||
+        typeof h.attemptedAt !== 'string' || !Number.isFinite(Date.parse(h.attemptedAt)) ||
+        (h.lastSuccessAt !== undefined && (typeof h.lastSuccessAt !== 'string' || !Number.isFinite(Date.parse(h.lastSuccessAt)))) ||
+        (h.error !== undefined && typeof h.error !== 'string')) throw new Error('Invalid handshake record.');
+    }
   }
   for (const source of value.sources) if (!object(source) || typeof source.endpoint !== 'string' || !['ok', 'error'].includes(String(source.status)))
     throw new Error('Invalid saved source.');
   if (value.release !== null && value.release !== undefined && (!object(value.release) || !parseVersion(value.release.version))) throw new Error('Invalid release.');
+  if (value.crawl !== undefined && (!object(value.crawl) ||
+    !['candidates', 'pending', 'attempted', 'confirmed', 'uniqueIPs', 'confirmedIPs', 'completedPasses'].every(k => Number.isInteger((value.crawl as Record<string, unknown>)[k]) && Number((value.crawl as Record<string, unknown>)[k]) >= 0) ||
+    typeof value.crawl.capped !== 'boolean')) throw new Error('Invalid crawl progress.');
   return value as unknown as Snapshot;
 }
 
-export function toCsv(nodes: NodeRecord[]): string {
+export function toCsv(nodes: NodeRecord[], roles: ReadonlyMap<string, string[]> = new Map()): string {
   const quote = (v: string) => `"${(/^[=+@\-\t\r]/.test(v) ? "'" : '') + v.replaceAll('"', '""')}"`;
-  const rows = nodes.map(n => [n.id, n.ip, n.version ?? 'unknown', n.name, n.evidence, n.sources.join(' | '), n.lastSeen, n.commit ?? '']);
-  return [['public_key', 'address', 'version', 'name', 'evidence', 'sources', 'last_seen_utc', 'commit'], ...rows]
+  const rows = nodes.map(n => [n.id, n.ip, n.version ?? 'unknown', n.name, n.evidence, n.sources.join(' | '), n.lastSeen, n.commit ?? '', (roles.get(n.id) ?? []).join(' | '), n.handshake?.status ?? '', n.handshake?.ip ?? '', String(n.handshake?.port ?? ''), n.handshake?.attemptedAt ?? '', n.handshake?.lastSuccessAt ?? '', n.handshake?.error ?? '']);
+  return [['public_key', 'address', 'version', 'name', 'evidence', 'sources', 'last_seen_utc', 'commit', 'seed_roles', 'handshake_status', 'handshake_ip', 'handshake_port', 'last_attempt_utc', 'last_success_utc', 'handshake_error'], ...rows]
     .map(row => row.map(quote).join(',')).join('\r\n');
 }
