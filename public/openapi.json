@@ -3,7 +3,7 @@
   "info": {
     "title": "Zenon Observatory Discovery API",
     "version": "1.0.0",
-    "description": "Read-only observations, not a full network census. Version strings are self-reported; unsuccessful handshakes do not prove a peer is offline. Cache data and normally poll at most once per minute."
+    "description": "Read-only observations, not a full network census. Version strings are self-reported; unsuccessful handshakes do not prove a peer is offline. Cache peer data and normally poll at most once per minute; momentum projections may be polled every ten seconds."
   },
   "servers": [
     {
@@ -46,7 +46,7 @@
             "description": "Unchanged; reuse the prior response body."
           },
           "503": {
-            "description": "No observations yet; retry later. This is not a count of the network.",
+            "description": "Source unavailable or warming up; retry later. Momentum responses may retain historical slots with their original timestamp. This is not a count of the network.",
             "content": {
               "application/json": {
                 "schema": {
@@ -88,7 +88,7 @@
             "description": "Unchanged; reuse the prior response body."
           },
           "503": {
-            "description": "No observations yet; retry later. This is not a count of the network.",
+            "description": "Source unavailable or warming up; retry later. Momentum responses may retain historical slots with their original timestamp. This is not a count of the network.",
             "content": {
               "application/json": {
                 "schema": {
@@ -130,11 +130,53 @@
             "description": "Unchanged; reuse the prior response body."
           },
           "503": {
-            "description": "No observations yet; retry later. This is not a count of the network.",
+            "description": "Source unavailable or warming up; retry later. Momentum responses may retain historical slots with their original timestamp. This is not a count of the network.",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/IPs"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/momentums": {
+      "get": {
+        "operationId": "getMomentumSchedule",
+        "summary": "Get upcoming momentum projections and observed outcomes; cached RPC weights do not guarantee future producers",
+        "parameters": [
+          {
+            "name": "If-None-Match",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ETag from a prior response to this same URL."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Get upcoming momentum projections and observed outcomes; cached RPC weights do not guarantee future producers",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MomentumSchedule"
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "Unchanged; reuse the prior response body."
+          },
+          "503": {
+            "description": "Source unavailable or warming up; retry later. Momentum responses may retain historical slots with their original timestamp. This is not a count of the network.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MomentumSchedule"
                 }
               }
             }
@@ -176,7 +218,7 @@
             }
           },
           "503": {
-            "description": "No observations yet; retry later. This is not a count of the network.",
+            "description": "Source unavailable or warming up; retry later. Momentum responses may retain historical slots with their original timestamp. This is not a count of the network.",
             "content": {
               "application/json": {
                 "schema": {
@@ -585,6 +627,237 @@
         "required": [
           "generatedAt",
           "ips"
+        ]
+      },
+      "MomentumHeader": {
+        "type": "object",
+        "properties": {
+          "height": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "hash": {
+            "type": "string"
+          },
+          "previousHash": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Unix seconds"
+          },
+          "producer": {
+            "type": "string"
+          },
+          "chainIdentifier": {
+            "const": 1
+          }
+        },
+        "required": [
+          "height",
+          "hash",
+          "previousHash",
+          "timestamp",
+          "producer",
+          "chainIdentifier"
+        ]
+      },
+      "PillarSoftware": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "peerId": {
+            "type": "string"
+          },
+          "evidence": {
+            "type": "string"
+          },
+          "observedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "reportedVersions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "reason": {
+            "enum": [
+              "no-pillar-peer-link",
+              "linked-peer-not-observed",
+              "linked-observation-stale",
+              "configured-peer-link",
+              "linked-peer-version-unknown"
+            ]
+          }
+        },
+        "required": [
+          "version",
+          "reason"
+        ]
+      },
+      "MomentumSlot": {
+        "type": "object",
+        "properties": {
+          "round": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "index": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 30
+          },
+          "startsAt": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Projected slot start in Unix seconds, not a future momentum height."
+          },
+          "pillar": {
+            "type": "string"
+          },
+          "producer": {
+            "type": "string"
+          },
+          "software": {
+            "$ref": "#/components/schemas/PillarSoftware"
+          },
+          "observed": {
+            "$ref": "#/components/schemas/MomentumHeader"
+          }
+        },
+        "required": [
+          "round",
+          "index",
+          "startsAt",
+          "pillar",
+          "producer",
+          "software"
+        ]
+      },
+      "ScheduleRound": {
+        "type": "object",
+        "properties": {
+          "round": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "proofHeight": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "proofHash": {
+            "type": "string"
+          },
+          "proofCutoff": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "checked": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "matched": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "round",
+          "proofHeight",
+          "proofHash",
+          "proofCutoff",
+          "checked",
+          "matched"
+        ]
+      },
+      "MomentumSchedule": {
+        "type": "object",
+        "properties": {
+          "schemaVersion": {
+            "const": 1
+          },
+          "generatedAt": {
+            "type": "string",
+            "description": "UTC time of last successful snapshot, or empty during warmup. Does not refresh on failure."
+          },
+          "status": {
+            "enum": [
+              "ready",
+              "stale",
+              "unavailable"
+            ]
+          },
+          "source": {
+            "type": "string"
+          },
+          "basis": {
+            "const": "rpc-current-weights"
+          },
+          "error": {
+            "type": "string"
+          },
+          "genesis": {
+            "const": 1637755200
+          },
+          "slotSeconds": {
+            "const": 10
+          },
+          "frontier": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MomentumHeader"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "checked": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "matched": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "rounds": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScheduleRound"
+            }
+          },
+          "slots": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MomentumSlot"
+            }
+          }
+        },
+        "required": [
+          "schemaVersion",
+          "generatedAt",
+          "status",
+          "source",
+          "basis",
+          "genesis",
+          "slotSeconds",
+          "frontier",
+          "checked",
+          "matched",
+          "rounds",
+          "slots"
         ]
       },
       "Health": {

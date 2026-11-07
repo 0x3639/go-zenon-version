@@ -71,7 +71,7 @@ for (const path of ['llms.txt', 'llms-full.txt', 'index.md']) {
 const api = JSON.parse(await read('openapi.json'));
 assert.equal(api.openapi, '3.1.0');
 assert.equal(api.servers[0].url, (process.env.VITE_DISCOVERY_API_URL?.trim() || DEFAULT_DISCOVERY_API).replace(/\/$/, ''));
-assert.deepEqual(Object.keys(api.paths).sort(), ['/api/v1/ips', '/api/v1/network', '/api/v1/nodes', '/healthz', '/readyz']);
+assert.deepEqual(Object.keys(api.paths).sort(), ['/api/v1/ips', '/api/v1/momentums', '/api/v1/network', '/api/v1/nodes', '/healthz', '/readyz']);
 for (const route of Object.values(api.paths) as Record<string, unknown>[]) assert.deepEqual(Object.keys(route), ['get']);
 function references(value: unknown): void {
   if (!value || typeof value !== 'object') return;

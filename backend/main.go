@@ -68,6 +68,7 @@ func loadConfig() config {
 }
 
 type store struct {
+	schedule         *scheduleStore
 	mu               sync.RWMutex
 	snapshot         Snapshot
 	body, nodes, ips []byte
@@ -114,6 +115,10 @@ func handler(data *store, origins map[string]bool) http.Handler {
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
+		if r.URL.Path == "/api/v1/momentums" {
+			data.schedule.serve(w, r)
+			return
+		}
 		data.mu.RLock()
 		defer data.mu.RUnlock()
 		if r.URL.Path == "/healthz" || r.URL.Path == "/readyz" {
@@ -401,7 +406,12 @@ func main() {
 			log.Fatal(err)
 		}
 	}
-	data := &store{}
+	links, err := parsePillarPeers(os.Getenv("PILLAR_PEERS_JSON"))
+	if err != nil {
+		log.Fatal(err)
+	}
+	data := &store{schedule: &scheduleStore{}}
+	data.schedule.publish(emptySchedule())
 	initial := Snapshot{SchemaVersion: 1, StartedAt: now(), GeneratedAt: now(), Mode: "discovery", Nodes: []Node{}, Sources: []Source{}}
 	if raw, e := os.ReadFile(filepath.Join(c.dir, "network.json")); e == nil {
 		var saved Snapshot
@@ -417,6 +427,7 @@ func main() {
 	}
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
+	go runSchedule(ctx, c, data, links)
 	done := make(chan struct{})
 	go func() {
 		defer close(done)

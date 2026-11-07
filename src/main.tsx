@@ -10,6 +10,7 @@ import { connectionStatus, CONNECTION_LABELS, groupByIP, toIPCsv } from './reach
 import type { ConnectionStatus } from './reachability.ts';
 import { GO_ZENON_SEEDS, GO_ZENON_SEED_SOURCE } from './go-zenon-seeds.ts';
 import './style.css';
+import { MomentumWatch } from './MomentumWatch.tsx';
 
 const COLORS = ['#c0f181', '#7bb8ef', '#d1a7f3', '#f3c783', '#f196a6', '#8fc8bc'];
 const STORAGE = 'zenon-observatory-settings';
@@ -186,7 +187,7 @@ function App() {
   }
   return <>
     <header className="topbar"><a className="brand" href="#"><Logo /><span>ZENON<span className="brand-divider">/</span><span className="brand-sub">observatory</span></span></a>
-      <nav aria-label="Main navigation"><a href="#overview" className="active">Overview</a><a href="#peers">Peer explorer</a><button onClick={() => setModal('about')}>How it works <ArrowUpRight size={13} /></button></nav>
+      <nav aria-label="Main navigation"><a href="#overview" className="active">Overview</a><a href="#momentums">Momentums</a><a href="#peers">Peer explorer</a><button onClick={() => setModal('about')}>How it works <ArrowUpRight size={13} /></button></nav>
       <a className="github-link" href="https://github.com/0x3639/go-zenon-version" target="_blank" rel="noreferrer" aria-label="View source on GitHub"><Github size={19} /><span>Source code</span></a>
     </header>
     <main id="overview">
@@ -196,6 +197,7 @@ function App() {
       <div className="status-line"><span className={`connection ${problem || stale ? 'warn' : ''}`}><i className="dot" />{busy ? 'Connecting to the network' : origin}</span><span className="status-separator" /><span>{latestObservation ? `Last observed ${ago(latestObservation)}` : 'Waiting for first observation'}</span><button onClick={() => setModal('sources')}>{seeds.length} RPC seeds <ArrowUpRight size={12} /></button></div>
       <div className="data-source"><span><Radio size={14} /><b>{api && origin === 'Discovery API' ? 'P2P discovery service' : 'Public RPC view'}</b><span>{api && origin === 'Discovery API' ? snapshot?.scanning ? 'Discovery in progress · results update automatically' : 'UDP discovery + TCP version handshakes' : 'Seed observations + saved snapshot · connect the API for P2P discovery'}</span></span>{snapshot?.pillarCount != null && <span className="pillar-context" title={`Pillar registry checked ${snapshot.pillarCountCheckedAt ? new Date(snapshot.pillarCountCheckedAt).toLocaleString() : 'at last scan'}`}><b>{snapshot.pillarCount}</b> registered pillars <button aria-label="Why pillar and peer counts differ" onClick={() => setModal('about')}><CircleHelp size={13} /></button></span>}</div>
       {snapshot?.crawl && <div className="crawl-progress" aria-label="Discovery queue progress"><span><Network size={15} /><b>Discovery queue</b></span><span>{snapshot.crawl.candidates} known endpoints</span><span>{snapshot.crawl.attempted} checked at least once</span><span className="queue-count">{snapshot.crawl.pending} queued for this pass</span><span>{snapshot.crawl.completedPasses} completed passes</span>{snapshot.crawl.capped && <span className="queue-warning">Candidate limit reached</span>}<p>{snapshot.crawl.pending ? 'Remaining peers stay queued across batches and restarts.' : 'Every known endpoint has been attempted. Discovery and retries continue.'} An unsuccessful handshake can mean NAT, a firewall, or a peer declining the connection.</p></div>}
+      <MomentumWatch api={api} />
       <section className="stats" aria-label="Network statistics">
         <article className="stat"><div className="stat-label">Observed nodes <Network size={17} /></div><div className="stat-number">{snapshot ? nodes.length : '—'}<span className="stat-badge"><i className="dot" /> unique peers</span></div><p>{uniqueIPs.length} unique public IPs · partial network view</p></article>
         <article className="stat"><div className="stat-label">Versions in the wild <Layers3 size={17} /></div><div className="stat-number">{snapshot ? versions.length : '—'}<span className="stat-text">reported versions</span></div><p>{nodes.filter(n => !n.version).length} nodes with an unknown version</p></article>

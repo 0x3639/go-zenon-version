@@ -13,6 +13,7 @@ services:
       MAX_NODES: "${MAX_NODES:-256}"
       CONCURRENCY: "${CONCURRENCY:-4}"
       SEED_URLS: "${SEED_URLS:-wss://my.hc1node.com:35998,wss://node.zenonhub.io:35998,wss://node.atsocy.com:35998}"
+      PILLAR_PEERS_JSON: "${PILLAR_PEERS_JSON:-}"
     volumes:
       - discovery-data:/data
     cap_drop: [ALL]
