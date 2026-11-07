@@ -27,6 +27,12 @@ Pillar producing addresses and P2P public keys are separate identities. Neither 
 
 The slot-timeline presentation was inspired by [Zenon TV's spork timing tool](https://tools.zenon.tv/spork). This service queries its own configured public RPC sources and uses go-zenon's election implementation; it does not consume the reference site's feed or simulate future producers.
 
+## Experimental Observer
+
+An optional Observer panel is disabled by default until the separate collection pilot is accepted and the site operator enables it. It reads an independent P2P observation service and can be unavailable while the existing peer explorer and Momentum watch continue working. When enabled, it refreshes about every 30 seconds and shows collection health, connected peers, capture drops, reference freshness, checked momentums, and peer sessions. Expand a momentum to read per-peer arrival evidence and dated pillar names. Each response has its own generated time, query window, and expandable data-quality details. A successful HTTP request does not establish fresh observations; stale snapshots and failed routes are labeled, and original timestamps are retained.
+
+**Relay advertised version** identifies software advertised by the observed relay session. **Producer software version: Unknown** remains unknown when the API returns `null`. Arrival order, a shared IP, and a dated name snapshot do not establish pillar ownership or historical identity assignments. Requested responses differ from unsolicited broadcasts. The Observer currently supplies collection evidence with association analysis pending; it does not supply ownership rankings, producer version deductions, or mappings for `PILLAR_PEERS_JSON`. Missing evidence does not establish offline peers. These collections are bounded previews, and default query windows may omit the newest 30 seconds. The independent [Observer API contract](https://github.com/0x3639/go-zenon-pillar-version/blob/588786bb804d08df733057993668c86047f937ab/docs/api.md) explains the envelope and quality fields.
+
 ## What the observations prove
 
 | Observation | Meaning | Limit |

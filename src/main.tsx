@@ -11,6 +11,7 @@ import type { ConnectionStatus } from './reachability.ts';
 import { GO_ZENON_SEEDS, GO_ZENON_SEED_SOURCE } from './go-zenon-seeds.ts';
 import './style.css';
 import { MomentumWatch } from './MomentumWatch.tsx';
+import { ObserverFeature, OBSERVER_CONFIG } from './ObserverFeature.tsx';
 
 const COLORS = ['#c0f181', '#7bb8ef', '#d1a7f3', '#f3c783', '#f196a6', '#8fc8bc'];
 const STORAGE = 'zenon-observatory-settings';
@@ -187,7 +188,7 @@ function App() {
   }
   return <>
     <header className="topbar"><a className="brand" href="#"><Logo /><span>ZENON<span className="brand-divider">/</span><span className="brand-sub">observatory</span></span></a>
-      <nav aria-label="Main navigation"><a href="#overview" className="active">Overview</a><a href="#momentums">Momentums</a><a href="#peers">Peer explorer</a><button onClick={() => setModal('about')}>How it works <ArrowUpRight size={13} /></button></nav>
+      <nav aria-label="Main navigation"><a href="#overview" className="active">Overview</a><a href="#momentums">Momentums</a><a href="#peers">Peer explorer</a>{OBSERVER_CONFIG.enabled && <a href="#observer">Observer <small>LAB</small></a>}<button onClick={() => setModal('about')}>How it works <ArrowUpRight size={13} /></button></nav>
       <a className="github-link" href="https://github.com/0x3639/go-zenon-version" target="_blank" rel="noreferrer" aria-label="View source on GitHub"><Github size={19} /><span>Source code</span></a>
     </header>
     <main id="overview">
@@ -217,6 +218,7 @@ function App() {
         <div className="table-scroll"><table><thead><tr><th>NODE / ADDRESS</th><th>GO-ZENON VERSION</th><th>OBSERVATION</th><th>LAST SEEN</th><th aria-label="Details" /></tr></thead><tbody>{rows.map(n => <tr key={n.id} onClick={() => { setSelected(n); setCopied(false); }}><td><span className="node-address"><span className="node-icon"><Network size={16} /></span><span><strong>{n.ip}</strong><code>{short(n.id)}</code><SeedBadges roles={seedRoles.get(n.id) ?? []} /></span></span></td><td><span className="table-version" style={{ '--version-color': n.version ? COLORS[versions.indexOf(n.version) % COLORS.length] : '#88978c' } as CSSProperties}><i className="dot" />{n.version ?? 'Unknown'}</span>{n.reportedVersions.length > 1 && <span className="conflict" title="Sources reported different versions">mixed reports</span>}</td><td><span className={`evidence ${['p2p', 'rpc'].includes(n.evidence) ? 'direct' : ''}`}>{['p2p', 'rpc'].includes(n.evidence) ? <ShieldCheck size={13} /> : <Radio size={13} />}{evidence[n.evidence]}</span><span className={`peer-check ${connectionStatus(n)}`} title={n.handshake ? `${n.handshake.ip}:${n.handshake.port} · ${new Date(n.handshake.attemptedAt).toLocaleString()}${n.handshake.error ? ` · ${n.handshake.error}` : ''}` : 'No detailed attempt history in this snapshot'}>{CONNECTION_LABELS[connectionStatus(n)]}</span></td><td className="last-seen" title={new Date(n.lastSeen).toLocaleString()}>{ago(n.lastSeen)}</td><td><button className="plain-icon" aria-label={`View peer ${n.ip}`} onClick={e => { e.stopPropagation(); setSelected(n); setCopied(false); }}><ArrowUpRight size={17} /></button></td></tr>)}</tbody></table>{!rows.length && <div className="empty"><Search size={28} /><h3>{nodes.length ? 'No peers match your filters' : 'Looking out across the network'}</h3><p>{nodes.length ? 'Try another address, version, node role, or P2P result.' : 'Observations will appear here as soon as a seed or discovery service responds.'}</p>{nodes.length > 0 && <button className="secondary" onClick={() => { setSearch(''); setFilter('all'); setProof('all'); setSeedFilter('all'); setConnectionFilter('all'); }}>Clear filters</button>}</div>}</div>
         <div className="pagination"><span>Showing <b>{filtered.length ? actualPage * 10 + 1 : 0}–{Math.min(actualPage * 10 + 10, filtered.length)}</b> of <b>{filtered.length}</b> peers</span><div><button className="icon-button" aria-label="Previous page" disabled={actualPage === 0} onClick={() => setPage(actualPage - 1)}><ChevronLeft size={17} /></button><span>{actualPage + 1} / {pages}</span><button className="icon-button" aria-label="Next page" disabled={actualPage >= pages - 1} onClick={() => setPage(actualPage + 1)}><ChevronRight size={17} /></button></div></div>
       </section>
+      <ObserverFeature />
       <div className="coverage-note"><CircleHelp size={14} /><p>A window into the network, not a complete census. Private, offline, or unreachable peers may be missing. Versions are self-reported.</p></div>
       <footer><span><Logo small /> Built for the Network of Momentum.</span><div><a href={`${import.meta.env.BASE_URL}guide/`}>Usage &amp; data guide</a><a href={`${import.meta.env.BASE_URL}llms.txt`}>LLM guide</a><a href={`${import.meta.env.BASE_URL}openapi.json`}>API</a><a href="https://github.com/zenon-network/go-zenon" target="_blank" rel="noreferrer">go-zenon <ArrowUpRight size={13} /></a></div></footer>
     </main>

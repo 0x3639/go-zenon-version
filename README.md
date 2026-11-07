@@ -97,6 +97,29 @@ GitHub Pages currently inherits the account’s custom domain: `https://0x3639.c
 
 The workflow builds with Node inside a job container. No server-side component runs on GitHub Pages, and no API credential is embedded in the frontend.
 
+### Experimental Observer panel
+
+The separate P2P Observer has an optional frontend panel. It is **off by default** and must remain off until its collection pilot passes and the operator enables it. Healthy responses never enable it automatically. The existing discovery service and Momentum watch do not depend on the Observer.
+
+| Setting | Default | Purpose |
+| --- | --- | --- |
+| `OBSERVER_ENABLED` GitHub Actions repository variable | Unset / off | Only the exact string `true` enables the panel in the next Pages build |
+| `OBSERVER_API_URL` GitHub Actions repository variable | Supplied Coolify Observer origin | Optional HTTPS origin override, without a path, query, credentials, or fragment |
+| `VITE_OBSERVER_ENABLED` | Off | Equivalent flag for direct Vite builds |
+| `VITE_OBSERVER_API_URL` | `https://zsjo46q7s0qcmaklbmak7gfp.172.245.238.165.sslip.io` | Independent Observer API origin |
+
+After pilot acceptance, set `OBSERVER_ENABLED=true` and run **Publish dashboard**. Disable it by removing the variable or setting it to `false`, then rebuild. No Coolify change or discovery backend redeploy is needed for this frontend feature. There is no query-string or browser-settings bypass. Disabled builds render neither the panel nor its navigation link and make no Observer requests; the panel is lazy loaded and has its own render error boundary.
+
+When enabled, **Observer · Experimental** appears below the peer explorer. Collection status, up to 100 peer sessions, the latest 25 returned checked momentums, and analysis availability refresh independently about every 30 seconds while the tab is visible. Requests time out after ten seconds, reject bodies above 1 MiB, and back off after failures (up to two minutes, or up to five minutes for `Retry-After`). Expanding a momentum fetches its arrival evidence and dated pillar names; closing it cancels that detail's requests and polling. No per-momentum requests are made for collapsed rows. Failed routes retain their last successful observations and original timestamps without blocking the other routes or panels.
+
+Every feed exposes `generatedAt`, its query window, and expandable `dataQuality`. Snapshots are stale after 90 seconds, or when operational status is that old; reference freshness is checked separately against a two-minute threshold. A browser clock more than 30 seconds behind those times also marks them stale. Collection counts and run-level quality counters have different windows, as labeled. Default API query windows can lag by up to 30 seconds. Lists are bounded previews and never claim full history or network coverage.
+
+Versions are labeled **Relay advertised version**. `producerSoftwareVersion: null` stays **Unknown**. Arrival event kinds, original UTC timestamp precision, capture exclusions, session identities, and verification states remain visible. Requested responses are not treated as unsolicited broadcasts. Pillar names are dated snapshots; no historical ownership is inferred. `/api/v1/associations` reports `available: false`, so analysis remains pending. The frontend never derives pillar ownership from IPs, ranks relays, or writes `PILLAR_PEERS_JSON`.
+
+The API is public, uses envelopes under `result` and list rows under `result.data`, and needs no API key. CORS currently permits `https://0x3639.com`. Local previews need an explicitly allowed local origin on a test API or a development-only proxy; never disable certificate validation or put credentials in the frontend. Local HTTP API origins are accepted only in Vite development mode. To check an enabled build in a container: `nodebox env VITE_OBSERVER_ENABLED=true npm run build`.
+
+Contract reference: [API documentation](https://github.com/0x3639/go-zenon-pillar-version/blob/588786bb804d08df733057993668c86047f937ab/docs/api.md), [Observer OpenAPI](https://github.com/0x3639/go-zenon-pillar-version/blob/588786bb804d08df733057993668c86047f937ab/docs/openapi.json). The Observatory's own `openapi.json` continues to describe its discovery API; the Observer is a separate service.
+
 ### Branding, search, and LLM discovery
 
 The dashboard and static guide include canonical URLs, Open Graph and Twitter cards, JSON-LD structured data, and links to machine-readable documentation. The shared angular Z mark supplies the header logo, SVG/ICO/PNG favicons, Apple touch icon, and web manifest icons. The social image is a 1200×630 PNG with illustrative peer graphics and no changing network totals.

@@ -5,7 +5,12 @@ permissions:
 jobs:
   frontend:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        observer: ['false', 'true']
     container: node:24-bookworm
+    env:
+      VITE_OBSERVER_ENABLED: ${{ matrix.observer }}
     steps:
       - uses: actions/checkout@v6
       - run: npm ci

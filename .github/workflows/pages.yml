@@ -22,6 +22,8 @@ jobs:
       - run: npm run build
         env:
           VITE_DISCOVERY_API_URL: ${{ vars.DISCOVERY_API_URL }}
+          VITE_OBSERVER_ENABLED: ${{ vars.OBSERVER_ENABLED == 'true' && 'true' || 'false' }}
+          VITE_OBSERVER_API_URL: ${{ vars.OBSERVER_API_URL }}
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v4
         with:
