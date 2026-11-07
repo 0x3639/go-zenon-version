@@ -26,7 +26,7 @@ flowchart LR
 2. Select the **Dockerfile** build pack. Set **Base Directory** to `/backend` and **Dockerfile Location** to `/Dockerfile`.
 3. Set **Ports Exposes** to `8080`. Attach your HTTPS domain, e.g. `https://discovery.example.com`. Coolify's reverse proxy routes HTTPS to container port 8080.
 4. Add persistent storage mounted at `/data`. The container runs as UID/GID `10001`; storage must be writable by that user. Docker named volumes inherit the image directory's ownership. For a bind mount, provision its ownership before deployment.
-5. Set `ALLOWED_ORIGINS=https://0x3639.github.io` (use your actual Pages/custom-domain origin, without a path or trailing slash).
+5. Set `ALLOWED_ORIGINS=https://0x3639.com,https://0x3639.github.io` (use your actual Pages/custom-domain origin, without a path or trailing slash).
 6. Set the health-check path to `/healthz`, and deploy. `/readyz` returns 503 until at least one peer is known.
 
 The service needs **outbound TCP and UDP** to peer-advertised public addresses, normally port 35995, plus outbound DNS and HTTPS/WSS to the seeds. Replies must be allowed through the firewall/NAT. It uses outbound UDP sockets with ephemeral source ports; **no public inbound P2P port mapping is required**. Only the HTTP API needs the reverse proxy. Do not route UDP through an HTTP proxy.
@@ -39,7 +39,7 @@ Alternatively, from `backend/`, deploy `compose.yaml` as a Coolify Compose appli
 | --- | --- | --- |
 | `PORT` | `8080` | API listen port |
 | `DATA_DIR` | `/data` | Private discovery identity and cached snapshot |
-| `ALLOWED_ORIGINS` | `https://0x3639.github.io` | Comma-separated browser origins; no wildcard |
+| `ALLOWED_ORIGINS` | `https://0x3639.com,https://0x3639.github.io` | Comma-separated browser origins; no wildcard |
 | `SEED_URLS` | The three seeds below | Comma-separated WSS/HTTPS RPC endpoints, maximum 8 |
 | `SCAN_INTERVAL` | `10m` | Pause between completed scans |
 | `SCAN_BUDGET` | `3m` | Maximum scan duration (10s–10m) |
@@ -74,7 +74,7 @@ Node fields include `id` (128-character public key), `ip`, `name`, `version` (nu
 3. In **Settings → Secrets and variables → Actions → Variables**, add repository variable `DISCOVERY_API_URL` with the HTTPS base URL of the Coolify service, e.g. `https://discovery.example.com` (no `/api/v1/network` suffix).
 4. Run **Publish dashboard**, or push a frontend change to `main`.
 
-The dashboard will be hosted at `https://0x3639.github.io/go-zenon-version/`. Vite uses relative asset paths, so project Pages paths and custom domains both work. The configured API is polled once a minute while the tab is visible. Visitors can override the URL in Connection settings; an empty URL uses live public seeds and the bundled snapshot.
+GitHub Pages currently inherits the account’s custom domain: `https://0x3639.com/go-zenon-version/` (the standard Pages URL is `https://0x3639.github.io/go-zenon-version/`). Vite uses relative asset paths, so project Pages paths and custom domains both work. The configured API is polled once a minute while the tab is visible. Visitors can override the URL in Connection settings; an empty URL uses live public seeds and the bundled snapshot.
 
 The workflow builds with Node inside a job container. No server-side component runs on GitHub Pages, and no API credential is embedded in the frontend.
 

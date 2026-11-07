@@ -7,7 +7,7 @@ services:
     environment:
       PORT: "8080"
       DATA_DIR: /data
-      ALLOWED_ORIGINS: "${ALLOWED_ORIGINS:-https://0x3639.github.io}"
+      ALLOWED_ORIGINS: "${ALLOWED_ORIGINS:-https://0x3639.com,https://0x3639.github.io}"
       SCAN_INTERVAL: "${SCAN_INTERVAL:-10m}"
       SCAN_BUDGET: "${SCAN_BUDGET:-3m}"
       MAX_NODES: "${MAX_NODES:-256}"

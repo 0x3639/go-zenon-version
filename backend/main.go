@@ -54,7 +54,7 @@ func number(key, fallback string, min, max int) int {
 }
 func loadConfig() config {
 	origins := map[string]bool{}
-	for _, s := range strings.Split(env("ALLOWED_ORIGINS", "https://0x3639.github.io"), ",") {
+	for _, s := range strings.Split(env("ALLOWED_ORIGINS", "https://0x3639.com,https://0x3639.github.io"), ",") {
 		origins[strings.TrimSpace(s)] = true
 	}
 	seeds := strings.Split(env("SEED_URLS", "wss://my.hc1node.com:35998,wss://node.zenonhub.io:35998,wss://node.atsocy.com:35998"), ",")
