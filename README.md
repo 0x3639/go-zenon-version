@@ -85,6 +85,18 @@ GitHub Pages currently inherits the account’s custom domain: `https://0x3639.c
 
 The workflow builds with Node inside a job container. No server-side component runs on GitHub Pages, and no API credential is embedded in the frontend.
 
+### Branding, search, and LLM discovery
+
+The dashboard and static guide include canonical URLs, Open Graph and Twitter cards, JSON-LD structured data, and links to machine-readable documentation. The shared angular Z mark supplies the header logo, SVG/ICO/PNG favicons, Apple touch icon, and web manifest icons. The social image is a 1200×630 PNG with illustrative peer graphics and no changing network totals.
+
+- [Usage and interpretation guide](https://0x3639.com/go-zenon-version/guide/) works without JavaScript and explains observation evidence, seed roles, timestamps, hidden nodes, and count definitions.
+- [llms.txt](https://0x3639.com/go-zenon-version/llms.txt) provides a concise discovery index; [llms-full.txt](https://0x3639.com/go-zenon-version/llms-full.txt) contains the complete guide. Equivalent Markdown pages are linked from HTML with `rel="alternate"`.
+- [OpenAPI](https://0x3639.com/go-zenon-version/openapi.json) describes the public read-only API; [sitemap.xml](https://0x3639.com/go-zenon-version/sitemap.xml) lists the dashboard and guide.
+
+Edit the logo in `assets/brand/mark.svg`, the social composition in `scripts/generate-assets.ts`, and the guide in `content/guide.md`. `src/site.ts` owns the canonical site URL and default API address; the build's `VITE_DISCOVERY_API_URL` also sets documentation API links. `nodebox npm run generate` refreshes generated public assets and the bounded metadata block in `index.html`. The regular build generates them automatically, then verifies the emitted links, image dimensions, metadata, and API references. The bundled DM Sans font is used only for image generation and includes its SIL Open Font License in `assets/brand/OFL.txt`.
+
+`robots.txt` belongs at the hostname root, outside this project Pages path. The account site's `https://0x3639.com/robots.txt` allows crawling as of 2026-11-07. A project-local robots file would not control this site. The sitemap can be submitted in the domain owner's search tools or linked from that root robots file. Search-result favicons are also hostname-scoped, so search engines may use the account site's favicon while browser tabs use this project's mark. These files make content accessible and easier to interpret; they do not guarantee indexing, ranking, or inclusion in AI answers.
+
 ## Local development
 
 All dependency installation and execution must stay in containers. From the repository root:

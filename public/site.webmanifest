@@ -1,0 +1,26 @@
+{
+  "id": "./",
+  "name": "Zenon Observatory",
+  "short_name": "Zenon",
+  "description": "Explore observed Zenon peers, compare go-zenon node versions, identify seed nodes, and inspect direct P2P handshake results. Open data with transparent coverage limits.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "lang": "en",
+  "background_color": "#101713",
+  "theme_color": "#101713",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

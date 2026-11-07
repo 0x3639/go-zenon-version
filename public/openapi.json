@@ -1,0 +1,617 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Zenon Observatory Discovery API",
+    "version": "1.0.0",
+    "description": "Read-only observations, not a full network census. Version strings are self-reported; unsuccessful handshakes do not prove a peer is offline. Cache data and normally poll at most once per minute."
+  },
+  "servers": [
+    {
+      "url": "https://tw7v2v7y9rjq7mle1isnlktq.172.245.238.165.sslip.io"
+    }
+  ],
+  "security": [],
+  "externalDocs": {
+    "description": "Usage, evidence semantics, and LLM instructions",
+    "url": "https://0x3639.com/go-zenon-version/guide/"
+  },
+  "paths": {
+    "/api/v1/network": {
+      "get": {
+        "operationId": "getSnapshot",
+        "summary": "Get one coherent network observation snapshot",
+        "parameters": [
+          {
+            "name": "If-None-Match",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ETag from a prior response to this same URL."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Get one coherent network observation snapshot",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Snapshot"
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "Unchanged; reuse the prior response body."
+          },
+          "503": {
+            "description": "No observations yet; retry later. This is not a count of the network.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Snapshot"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/nodes": {
+      "get": {
+        "operationId": "getNodes",
+        "summary": "Get observed peer identities",
+        "parameters": [
+          {
+            "name": "If-None-Match",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ETag from a prior response to this same URL."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Get observed peer identities",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Nodes"
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "Unchanged; reuse the prior response body."
+          },
+          "503": {
+            "description": "No observations yet; retry later. This is not a count of the network.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Nodes"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ips": {
+      "get": {
+        "operationId": "getIPs",
+        "summary": "Get deduplicated observed public IPs",
+        "parameters": [
+          {
+            "name": "If-None-Match",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ETag from a prior response to this same URL."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Get deduplicated observed public IPs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IPs"
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "Unchanged; reuse the prior response body."
+          },
+          "503": {
+            "description": "No observations yet; retry later. This is not a count of the network.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IPs"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/healthz": {
+      "get": {
+        "operationId": "getHealth",
+        "summary": "Check process liveness",
+        "responses": {
+          "200": {
+            "description": "Check process liveness",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/readyz": {
+      "get": {
+        "operationId": "getReadiness",
+        "summary": "Check whether observations are available",
+        "responses": {
+          "200": {
+            "description": "Check whether observations are available",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "No observations yet; retry later. This is not a count of the network.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Handshake": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "enum": [
+              "confirmed",
+              "failed"
+            ]
+          },
+          "ip": {
+            "type": "string"
+          },
+          "port": {
+            "type": "integer",
+            "minimum": 1024,
+            "maximum": 65535
+          },
+          "attemptedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastSuccessAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "error": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "ip",
+          "port",
+          "attemptedAt"
+        ]
+      },
+      "Node": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{128}$"
+          },
+          "ip": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reportedVersions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "commit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "evidence": {
+            "enum": [
+              "p2p",
+              "rpc",
+              "peer",
+              "discovery"
+            ]
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "rpcEndpoints": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "firstSeen": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastSeen": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "tcpPort": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 65535
+          },
+          "udpPort": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 65535
+          },
+          "handshake": {
+            "$ref": "#/components/schemas/Handshake"
+          },
+          "lastDiscoveryAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "ip",
+          "name",
+          "version",
+          "reportedVersions",
+          "commit",
+          "evidence",
+          "sources",
+          "rpcEndpoints",
+          "firstSeen",
+          "lastSeen"
+        ]
+      },
+      "Source": {
+        "type": "object",
+        "properties": {
+          "endpoint": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "error"
+            ]
+          },
+          "peerCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "nodeId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error": {
+            "type": "string"
+          },
+          "checkedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "endpoint",
+          "status",
+          "peerCount",
+          "nodeId",
+          "checkedAt"
+        ]
+      },
+      "Release": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "string"
+          },
+          "tag": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "checkedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "version",
+          "tag",
+          "url",
+          "checkedAt"
+        ]
+      },
+      "Crawl": {
+        "type": "object",
+        "properties": {
+          "candidates": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "pending": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "attempted": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "confirmed": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "uniqueIPs": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "confirmedIPs": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "completedPasses": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "capped": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "candidates",
+          "pending",
+          "attempted",
+          "confirmed",
+          "uniqueIPs",
+          "confirmedIPs",
+          "completedPasses",
+          "capped"
+        ]
+      },
+      "Snapshot": {
+        "type": "object",
+        "properties": {
+          "schemaVersion": {
+            "const": 1
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "generatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "mode": {
+            "enum": [
+              "discovery",
+              "collector",
+              "browser"
+            ]
+          },
+          "nodes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Node"
+            }
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Source"
+            }
+          },
+          "limited": {
+            "type": "boolean"
+          },
+          "release": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Release"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "scanning": {
+            "type": "boolean"
+          },
+          "pillarCount": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "pillarCountCheckedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "crawl": {
+            "$ref": "#/components/schemas/Crawl"
+          }
+        },
+        "required": [
+          "schemaVersion",
+          "startedAt",
+          "generatedAt",
+          "mode",
+          "nodes",
+          "sources",
+          "limited",
+          "release"
+        ]
+      },
+      "IP": {
+        "type": "object",
+        "properties": {
+          "ip": {
+            "type": "string"
+          },
+          "nodeIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "confirmedNodes": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "lastAttemptAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastSuccessAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "ip",
+          "nodeIds",
+          "confirmedNodes"
+        ]
+      },
+      "Nodes": {
+        "type": "object",
+        "properties": {
+          "generatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "nodes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Node"
+            }
+          }
+        },
+        "required": [
+          "generatedAt",
+          "nodes"
+        ]
+      },
+      "IPs": {
+        "type": "object",
+        "properties": {
+          "generatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "ips": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IP"
+            }
+          }
+        },
+        "required": [
+          "generatedAt",
+          "ips"
+        ]
+      },
+      "Health": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "const": "ok"
+          },
+          "scanning": {
+            "type": "boolean"
+          },
+          "nodes": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "status",
+          "scanning",
+          "nodes",
+          "updatedAt"
+        ]
+      }
+    }
+  }
+}
