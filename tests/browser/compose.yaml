@@ -1,0 +1,32 @@
+name: zenon-association-preview
+services:
+  web:
+    image: node:24-slim
+    user: "${LOCAL_UID:-501}:${LOCAL_GID:-20}"
+    working_dir: /app
+    command: npm run dev -- --host 0.0.0.0 --config tests/browser/vite.config.ts
+    ports: ["127.0.0.1:3000:3000"]
+    volumes: ["../..:/app"]
+    environment:
+      VITE_DISCOVERY_API_URL: https://tw7v2v7y9rjq7mle1isnlktq.172.245.238.165.sslip.io
+      VITE_OBSERVER_ENABLED: "${OBSERVER_PREVIEW_ENABLED:-true}"
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 1g
+    pids_limit: 256
+    tmpfs: [/tmp]
+  browser:
+    image: mcr.microsoft.com/playwright:v1.65.0-noble
+    user: "${LOCAL_UID:-501}:${LOCAL_GID:-20}"
+    working_dir: /app
+    command: npm run test:browser
+    volumes: ["../..:/app"]
+    environment:
+      PREVIEW_URL: http://web:3000
+      OBSERVER_PREVIEW_ENABLED: "${OBSERVER_PREVIEW_ENABLED:-true}"
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 2g
+    pids_limit: 256
+    shm_size: 256m
+    tmpfs: [/tmp]

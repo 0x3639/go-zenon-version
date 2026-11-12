@@ -5,3 +5,5 @@ dist/
 .env.*
 coverage/
 .qa/
+test-results/
+playwright-report/
