@@ -1,0 +1,1147 @@
+{
+  "associations": {
+    "dataQuality": {
+      "absenceMeansOffline": false,
+      "aggregateRetentionDays": 90,
+      "analysisPendingHours": 0,
+      "analysisProcessedHours": 113,
+      "analysisRetryingHours": 0,
+      "analysisState": "ready",
+      "associationAnalysisImplemented": true,
+      "associationMethodVersion": "association-2",
+      "associationSummariesAvailable": true,
+      "captureDropsInOverlappingRuns": 0,
+      "captureState": "observing",
+      "clockJumpsInOverlappingRuns": 0,
+      "consensusValidated": false,
+      "interruptedRuns": 1,
+      "legacyFeasibilityImported": false,
+      "producerSoftwareVersion": null,
+      "rankingsAvailable": true,
+      "rawHistoryAvailableFrom": "2026-11-05T10:45:00Z",
+      "rawRetentionDays": 7,
+      "ready": true,
+      "recordedGapAndConnectionEvents": 70,
+      "statusUpdatedAt": "2026-11-12T10:45:06.975661831Z"
+    },
+    "generatedAt": "2026-11-12T10:45:06.975661831Z",
+    "methodVersion": "association-2",
+    "observerId": "coolify-observer-01",
+    "result": {
+      "data": [
+        {
+          "pillarName": "AlienApeZ",
+          "pillarNameObservedAt": "2026-11-12T01:59:29.881Z",
+          "producerAddress": "z1qp0mxukh55e6m5q4yxsukz5xhwnt9n5cg49tnj",
+          "peerId": "0316e6152bed5773850c72a79a8eed9c4dd72966d6f5101e860fa73da6c9a064701964cf3e0a09420a60c38000497af4c43c0e1374bfe5120dee0180f7bc30ed",
+          "ip": "51.81.209.53",
+          "advertisedVersion": "0.0.8",
+          "versionObservedAt": "2026-11-12T01:15:51.759Z",
+          "producerSoftwareVersion": null,
+          "cohortId": "306b6661eb46e2d6dec0d1ae",
+          "bootId": "18830ba4a45a7875759a280576d5216d",
+          "cohortSessionIds": [
+            "18830ba4a45a7875759a280576d5216d-1",
+            "18830ba4a45a7875759a280576d5216d-2",
+            "18830ba4a45a7875759a280576d5216d-3",
+            "18830ba4a45a7875759a280576d5216d-4"
+          ],
+          "activeCompetitorCount": 3,
+          "eventKind": "full_broadcast",
+          "sampleCount": 1,
+          "utcDayCount": 1,
+          "connectedDurationSeconds": 1210.470063682,
+          "firstObservedAt": "2026-11-12T01:28:30.081564117Z",
+          "lastObservedAt": "2026-11-12T01:28:30.081564117Z",
+          "associationStatus": "insufficient_data",
+          "rawEvidenceAvailable": true,
+          "eligibleCount": 1,
+          "receivedCount": 0,
+          "firstArrivalCount": 0,
+          "tieCount": 0,
+          "firstArrivalShare": 0,
+          "deliveryCoverage": 0,
+          "tieShare": 0,
+          "medianRelativeDelayMs": null,
+          "p95RelativeDelayMs": null,
+          "otherProducers": {
+            "eligibleCount": 91,
+            "receivedCount": 35,
+            "firstArrivalCount": 19,
+            "tieCount": 0
+          },
+          "baselineMatchedEligibleCount": 1,
+          "baselineFirstArrivalShare": 0.2087912087912088,
+          "excessFirstArrivalShare": -0.2087912087912088,
+          "perDay": [
+            {
+              "utcDay": "2026-11-12",
+              "eligibleCount": 1,
+              "receivedCount": 0,
+              "firstArrivalCount": 0,
+              "tieCount": 0,
+              "firstArrivalShare": 0,
+              "deliveryCoverage": 0,
+              "tieShare": 0,
+              "medianRelativeDelayMs": null,
+              "p95RelativeDelayMs": null,
+              "otherProducers": {
+                "eligibleCount": 91,
+                "receivedCount": 35,
+                "firstArrivalCount": 19,
+                "tieCount": 0
+              },
+              "baselineMatchedEligibleCount": 1,
+              "baselineFirstArrivalShare": 0.2087912087912088,
+              "excessFirstArrivalShare": -0.2087912087912088
+            }
+          ],
+          "holdout": {
+            "splitAt": "2026-11-08T22:00:00Z",
+            "earlier": {
+              "eligibleCount": 0,
+              "receivedCount": 0,
+              "firstArrivalCount": 0,
+              "tieCount": 0,
+              "firstArrivalShare": 0,
+              "deliveryCoverage": 0,
+              "tieShare": 0,
+              "medianRelativeDelayMs": null,
+              "p95RelativeDelayMs": null,
+              "otherProducers": {
+                "eligibleCount": 0,
+                "receivedCount": 0,
+                "firstArrivalCount": 0,
+                "tieCount": 0
+              },
+              "baselineMatchedEligibleCount": 0,
+              "baselineFirstArrivalShare": null,
+              "excessFirstArrivalShare": null
+            },
+            "later": {
+              "eligibleCount": 1,
+              "receivedCount": 0,
+              "firstArrivalCount": 0,
+              "tieCount": 0,
+              "firstArrivalShare": 0,
+              "deliveryCoverage": 0,
+              "tieShare": 0,
+              "medianRelativeDelayMs": null,
+              "p95RelativeDelayMs": null,
+              "otherProducers": {
+                "eligibleCount": 91,
+                "receivedCount": 35,
+                "firstArrivalCount": 19,
+                "tieCount": 0
+              },
+              "baselineMatchedEligibleCount": 1,
+              "baselineFirstArrivalShare": 0.2087912087912088,
+              "excessFirstArrivalShare": -0.2087912087912088
+            },
+            "result": "insufficient_data"
+          }
+        },
+        {
+          "pillarName": "AlienApeZ",
+          "pillarNameObservedAt": "2026-11-12T01:59:29.881Z",
+          "producerAddress": "z1qp0mxukh55e6m5q4yxsukz5xhwnt9n5cg49tnj",
+          "peerId": "0316e6152bed5773850c72a79a8eed9c4dd72966d6f5101e860fa73da6c9a064701964cf3e0a09420a60c38000497af4c43c0e1374bfe5120dee0180f7bc30ed",
+          "ip": "51.81.209.53",
+          "advertisedVersion": "0.0.8",
+          "versionObservedAt": "2026-11-12T01:15:51.759Z",
+          "producerSoftwareVersion": null,
+          "cohortId": "306b6661eb46e2d6dec0d1ae",
+          "bootId": "18830ba4a45a7875759a280576d5216d",
+          "cohortSessionIds": [
+            "18830ba4a45a7875759a280576d5216d-1",
+            "18830ba4a45a7875759a280576d5216d-2",
+            "18830ba4a45a7875759a280576d5216d-3",
+            "18830ba4a45a7875759a280576d5216d-4"
+          ],
+          "activeCompetitorCount": 3,
+          "eventKind": "hash_announcement",
+          "sampleCount": 1,
+          "utcDayCount": 1,
+          "connectedDurationSeconds": 1210.470063682,
+          "firstObservedAt": "2026-11-12T01:28:30.068634724Z",
+          "lastObservedAt": "2026-11-12T01:28:30.068634724Z",
+          "associationStatus": "insufficient_data",
+          "rawEvidenceAvailable": true,
+          "eligibleCount": 1,
+          "receivedCount": 1,
+          "firstArrivalCount": 0,
+          "tieCount": 0,
+          "firstArrivalShare": 0,
+          "deliveryCoverage": 1,
+          "tieShare": 0,
+          "medianRelativeDelayMs": 40.838127,
+          "p95RelativeDelayMs": 40.838127,
+          "otherProducers": {
+            "eligibleCount": 107,
+            "receivedCount": 104,
+            "firstArrivalCount": 3,
+            "tieCount": 2
+          },
+          "baselineMatchedEligibleCount": 1,
+          "baselineFirstArrivalShare": 0.028037383177570093,
+          "excessFirstArrivalShare": -0.028037383177570093,
+          "perDay": [
+            {
+              "utcDay": "2026-11-12",
+              "eligibleCount": 1,
+              "receivedCount": 1,
+              "firstArrivalCount": 0,
+              "tieCount": 0,
+              "firstArrivalShare": 0,
+              "deliveryCoverage": 1,
+              "tieShare": 0,
+              "medianRelativeDelayMs": 40.838127,
+              "p95RelativeDelayMs": 40.838127,
+              "otherProducers": {
+                "eligibleCount": 107,
+                "receivedCount": 104,
+                "firstArrivalCount": 3,
+                "tieCount": 2
+              },
+              "baselineMatchedEligibleCount": 1,
+              "baselineFirstArrivalShare": 0.028037383177570093,
+              "excessFirstArrivalShare": -0.028037383177570093
+            }
+          ],
+          "holdout": {
+            "splitAt": "2026-11-08T22:00:00Z",
+            "earlier": {
+              "eligibleCount": 0,
+              "receivedCount": 0,
+              "firstArrivalCount": 0,
+              "tieCount": 0,
+              "firstArrivalShare": 0,
+              "deliveryCoverage": 0,
+              "tieShare": 0,
+              "medianRelativeDelayMs": null,
+              "p95RelativeDelayMs": null,
+              "otherProducers": {
+                "eligibleCount": 0,
+                "receivedCount": 0,
+                "firstArrivalCount": 0,
+                "tieCount": 0
+              },
+              "baselineMatchedEligibleCount": 0,
+              "baselineFirstArrivalShare": null,
+              "excessFirstArrivalShare": null
+            },
+            "later": {
+              "eligibleCount": 1,
+              "receivedCount": 1,
+              "firstArrivalCount": 0,
+              "tieCount": 0,
+              "firstArrivalShare": 0,
+              "deliveryCoverage": 1,
+              "tieShare": 0,
+              "medianRelativeDelayMs": 40.838127,
+              "p95RelativeDelayMs": 40.838127,
+              "otherProducers": {
+                "eligibleCount": 107,
+                "receivedCount": 104,
+                "firstArrivalCount": 3,
+                "tieCount": 2
+              },
+              "baselineMatchedEligibleCount": 1,
+              "baselineFirstArrivalShare": 0.028037383177570093,
+              "excessFirstArrivalShare": -0.028037383177570093
+            },
+            "result": "insufficient_data"
+          }
+        }
+      ],
+      "nextOffset": 2,
+      "available": true,
+      "producerSoftwareVersion": null,
+      "processedHours": 113,
+      "retryingHours": 0,
+      "excludedHoursByReason": {},
+      "pendingHours": 0,
+      "missingHours": 55,
+      "excludedComparisonsByReason": {
+        "fewer_than_two_distinct_eligible_peers": 4,
+        "unsafe_or_unknown_run": 63680
+      },
+      "computedAt": "2026-11-12T10:02:06.541Z",
+      "methodVersion": "association-2"
+    },
+    "schemaVersion": "1.1",
+    "windowEnd": "2026-11-12T10:00:00Z",
+    "windowStart": "2026-11-05T10:00:00Z"
+  },
+  "status": {
+    "dataQuality": {
+      "absenceMeansOffline": false,
+      "aggregateRetentionDays": 90,
+      "analysisPendingHours": 0,
+      "analysisProcessedHours": 113,
+      "analysisRetryingHours": 0,
+      "analysisState": "ready",
+      "associationAnalysisImplemented": true,
+      "associationMethodVersion": "association-2",
+      "associationSummariesAvailable": true,
+      "captureDropsInOverlappingRuns": 0,
+      "captureState": "observing",
+      "clockJumpsInOverlappingRuns": 0,
+      "consensusValidated": false,
+      "interruptedRuns": 1,
+      "legacyFeasibilityImported": false,
+      "producerSoftwareVersion": null,
+      "rankingsAvailable": true,
+      "rawHistoryAvailableFrom": "2026-11-05T10:45:00Z",
+      "rawRetentionDays": 7,
+      "ready": true,
+      "recordedGapAndConnectionEvents": 23,
+      "statusUpdatedAt": "2026-11-12T10:45:06.975661831Z"
+    },
+    "generatedAt": "2026-11-12T10:45:06.975661831Z",
+    "methodVersion": "association-2",
+    "observerId": "coolify-observer-01",
+    "result": {
+      "aggregateRetentionDays": 90,
+      "aggregateRetentionImplemented": true,
+      "analysisError": "",
+      "arrivalLimitReached": false,
+      "arrivalsByKind": {
+        "full_broadcast": 64,
+        "hash_announcement": 215,
+        "requested_response": 141
+      },
+      "associationAnalysisImplemented": true,
+      "associationSummariesAvailable": true,
+      "bootId": "b0fb2e990411cac1c6c5d0579824ec2d",
+      "captureDrops": 0,
+      "captureState": "observing",
+      "clockJumps": 0,
+      "configurationFingerprint": "3f14734955d8d8b329a7d93dcb5eb4c45cc7ddf35f9a7b675247523fb130780c",
+      "configuredPeers": 4,
+      "connectedPeers": 4,
+      "dataBudgetBytes": 2147483648,
+      "distinctCheckedLiveMomentums": 56,
+      "distinctCheckedLiveMomentumsSeenFromTwoPeers": 56,
+      "duplicateCount": 134,
+      "excludedByReason": {
+        "requested_response": 141
+      },
+      "final": false,
+      "generatedAt": "2026-11-12T10:45:06.975527571Z",
+      "maintenanceError": "",
+      "maxTwoSessionOverlapSeconds": 30954.930371807,
+      "metadataBytesCommittedThisBoot": 129525366,
+      "methodVersion": "association-2",
+      "mode": "service",
+      "observerId": "coolify-observer-01",
+      "pillarSnapshotError": "",
+      "producerSoftwareVersion": null,
+      "queueDepth": 0,
+      "rankingAvailable": true,
+      "rawRetentionDays": 7,
+      "reconciliation": {
+        "checkedAt": "2026-11-12T10:44:09.974968814Z",
+        "continuityEstablished": true,
+        "disputedHeights": 0,
+        "endHeight": 14646054,
+        "error": "",
+        "reorganized": false,
+        "sources": [
+          "wss://my.hc1node.com:35998",
+          "wss://node.zenonhub.io:35998"
+        ],
+        "startHeight": 14645875,
+        "state": "rpc_agreed"
+      },
+      "referenceError": "",
+      "referenceObservedAt": "2026-11-12T10:44:59.983897353Z",
+      "release": "0.3.1-associations",
+      "schemaMigrationVersion": 3,
+      "schemaVersion": "1.1",
+      "sessions": [
+        {
+          "advertisedVersion": "0.0.8",
+          "capabilities": [
+            "eth/61"
+          ],
+          "clientName": "v0.0.8 znn-node",
+          "connectedAt": "2026-11-12T02:09:11.025927983Z",
+          "disconnectReason": "",
+          "disconnectedAt": null,
+          "disconnectedMonoNs": 0,
+          "ip": "51.81.209.53",
+          "peerId": "0316e6152bed5773850c72a79a8eed9c4dd72966d6f5101e860fa73da6c9a064701964cf3e0a09420a60c38000497af4c43c0e1374bfe5120dee0180f7bc30ed",
+          "port": 35995,
+          "sessionId": "b0fb2e990411cac1c6c5d0579824ec2d-1",
+          "statusCompletedAt": "2026-11-12T02:09:11.1305406Z",
+          "statusCompletedMonoNs": 1156532344,
+          "statusReference": {
+            "hash": "068b8021d74afd5b97c873711a506154781e1f990acc712d8412bcf1a5f2f683",
+            "height": 14643226,
+            "previousHash": "e7caf9a9391f4e566980e07e70a32616385e6215b061fff52b8162e57810cc82",
+            "producerAddress": "z1qqj609s77lyls3zf4c6vc57jaghju3wcx3c2al",
+            "protocolVersion": 1,
+            "source": "wss://my.hc1node.com:35998",
+            "timestamp": 1794449330,
+            "verificationState": "rpc_observed"
+          }
+        },
+        {
+          "advertisedVersion": "0.0.9",
+          "capabilities": [
+            "eth/61"
+          ],
+          "clientName": "v0.0.9 znn-node",
+          "connectedAt": "2026-11-12T02:09:11.998281654Z",
+          "disconnectReason": "",
+          "disconnectedAt": null,
+          "disconnectedMonoNs": 0,
+          "ip": "23.95.73.26",
+          "peerId": "072792b916d53179692b01d3d60b38f6fcb37fa8f4bf111b55007546035f2a5244b269c8875a22e422cc336df6784659f67026107d96225c250d47eacbe9d7a1",
+          "port": 35995,
+          "sessionId": "b0fb2e990411cac1c6c5d0579824ec2d-2",
+          "statusCompletedAt": "2026-11-12T02:09:12.045155774Z",
+          "statusCompletedMonoNs": 2071147518,
+          "statusReference": {
+            "hash": "068b8021d74afd5b97c873711a506154781e1f990acc712d8412bcf1a5f2f683",
+            "height": 14643226,
+            "previousHash": "e7caf9a9391f4e566980e07e70a32616385e6215b061fff52b8162e57810cc82",
+            "producerAddress": "z1qqj609s77lyls3zf4c6vc57jaghju3wcx3c2al",
+            "protocolVersion": 1,
+            "source": "wss://my.hc1node.com:35998",
+            "timestamp": 1794449330,
+            "verificationState": "rpc_observed"
+          }
+        },
+        {
+          "advertisedVersion": "0.0.8",
+          "capabilities": [
+            "eth/61"
+          ],
+          "clientName": "v0.0.8 znn-node",
+          "connectedAt": "2026-11-12T02:09:12.997258192Z",
+          "disconnectReason": "",
+          "disconnectedAt": null,
+          "disconnectedMonoNs": 0,
+          "ip": "135.148.32.194",
+          "peerId": "0c5213f89c748aab5c39e63bdc65bd97bf446a5229e640086e2784217d24731d78ab53ee5316619dc4299ab759304c5859272d35cfab74fd9106753e0db3d14e",
+          "port": 35995,
+          "sessionId": "b0fb2e990411cac1c6c5d0579824ec2d-3",
+          "statusCompletedAt": "2026-11-12T02:09:13.040370966Z",
+          "statusCompletedMonoNs": 3066362710,
+          "statusReference": {
+            "hash": "068b8021d74afd5b97c873711a506154781e1f990acc712d8412bcf1a5f2f683",
+            "height": 14643226,
+            "previousHash": "e7caf9a9391f4e566980e07e70a32616385e6215b061fff52b8162e57810cc82",
+            "producerAddress": "z1qqj609s77lyls3zf4c6vc57jaghju3wcx3c2al",
+            "protocolVersion": 1,
+            "source": "wss://my.hc1node.com:35998",
+            "timestamp": 1794449330,
+            "verificationState": "rpc_observed"
+          }
+        },
+        {
+          "advertisedVersion": "0.0.9",
+          "capabilities": [
+            "eth/61"
+          ],
+          "clientName": "v0.0.9 znn-node",
+          "connectedAt": "2026-11-12T02:09:14.192396635Z",
+          "disconnectReason": "",
+          "disconnectedAt": null,
+          "disconnectedMonoNs": 0,
+          "ip": "51.79.146.74",
+          "peerId": "0ee6563a924a42912ab47fe87503f205527c4e8d9ffb1fd5a1a11a81a6d92f1f0df5a697e90cbdd23376bc1ccf4902ed5a23290aa4d1b5b10a40ac11e13190c4",
+          "port": 35995,
+          "sessionId": "b0fb2e990411cac1c6c5d0579824ec2d-4",
+          "statusCompletedAt": "2026-11-12T02:09:14.628380614Z",
+          "statusCompletedMonoNs": 4654372498,
+          "statusReference": {
+            "hash": "068b8021d74afd5b97c873711a506154781e1f990acc712d8412bcf1a5f2f683",
+            "height": 14643226,
+            "previousHash": "e7caf9a9391f4e566980e07e70a32616385e6215b061fff52b8162e57810cc82",
+            "producerAddress": "z1qqj609s77lyls3zf4c6vc57jaghju3wcx3c2al",
+            "protocolVersion": 1,
+            "source": "wss://my.hc1node.com:35998",
+            "timestamp": 1794449330,
+            "verificationState": "rpc_observed"
+          }
+        }
+      ],
+      "statisticsWindowSeconds": 600,
+      "storage": {
+        "filesystemFreeBytes": 66921324544,
+        "filesystemTotalBytes": 84423864320,
+        "minimumFreeBytes": 8442386432,
+        "usedBytes": 800805846
+      },
+      "storageCheckError": "",
+      "storageError": "",
+      "traffic": {
+        "actualEgressBytesThisBoot": 1769516,
+        "actualIngressBytesThisBoot": 6193432,
+        "egressLimit": 52428800,
+        "ingressLimit": 262144000,
+        "pausedUntil": "0001-01-01T00:00:00Z",
+        "persistenceError": null,
+        "reservedEgressBytesRollingHour": 3997696,
+        "reservedIngressBytesRollingHour": 3997696
+      },
+      "upstreamRevision": "bb39e31c608dc397a91b98b21b096bca99a9f4d6",
+      "windowStart": "2026-11-12T10:35:06.975527571Z"
+    },
+    "schemaVersion": "1.1",
+    "windowEnd": "2026-11-12T10:45:00Z",
+    "windowStart": "2026-11-11T10:45:00Z"
+  },
+  "pillar": {
+    "dataQuality": {
+      "absenceMeansOffline": false,
+      "aggregateRetentionDays": 90,
+      "analysisPendingHours": 0,
+      "analysisProcessedHours": 113,
+      "analysisRetryingHours": 0,
+      "analysisState": "ready",
+      "associationAnalysisImplemented": true,
+      "associationMethodVersion": "association-2",
+      "associationSummariesAvailable": true,
+      "captureDropsInOverlappingRuns": 0,
+      "captureState": "observing",
+      "clockJumpsInOverlappingRuns": 0,
+      "consensusValidated": false,
+      "interruptedRuns": 1,
+      "legacyFeasibilityImported": false,
+      "producerSoftwareVersion": null,
+      "rankingsAvailable": true,
+      "rawHistoryAvailableFrom": "2026-11-05T10:45:30Z",
+      "rawRetentionDays": 7,
+      "ready": true,
+      "recordedGapAndConnectionEvents": 23,
+      "statusUpdatedAt": "2026-11-12T10:45:28.974960155Z"
+    },
+    "generatedAt": "2026-11-12T10:45:28.974960155Z",
+    "methodVersion": "association-2",
+    "observerId": "coolify-observer-01",
+    "result": {
+      "associationAnalysisAvailable": true,
+      "associationSummary": {
+        "excludedComparisonsByReason": {
+          "fewer_than_two_distinct_eligible_peers": 4,
+          "unsafe_or_unknown_run": 8567
+        },
+        "excludedHoursByReason": {},
+        "missingHours": 0,
+        "pendingHours": 0,
+        "processedHours": 23,
+        "reason": "",
+        "retryingHours": 0
+      },
+      "associationWindowEnd": "2026-11-12T10:00:00Z",
+      "associationWindowStart": "2026-11-11T11:00:00Z",
+      "associations": [
+        {
+          "pillarName": "AlienApeZ",
+          "pillarNameObservedAt": "2026-11-12T01:59:29.881Z",
+          "producerAddress": "z1qp0mxukh55e6m5q4yxsukz5xhwnt9n5cg49tnj",
+          "peerId": "0316e6152bed5773850c72a79a8eed9c4dd72966d6f5101e860fa73da6c9a064701964cf3e0a09420a60c38000497af4c43c0e1374bfe5120dee0180f7bc30ed",
+          "ip": "51.81.209.53",
+          "advertisedVersion": "0.0.8",
+          "versionObservedAt": "2026-11-12T01:15:51.759Z",
+          "producerSoftwareVersion": null,
+          "cohortId": "306b6661eb46e2d6dec0d1ae",
+          "bootId": "18830ba4a45a7875759a280576d5216d",
+          "cohortSessionIds": [
+            "18830ba4a45a7875759a280576d5216d-1",
+            "18830ba4a45a7875759a280576d5216d-2",
+            "18830ba4a45a7875759a280576d5216d-3",
+            "18830ba4a45a7875759a280576d5216d-4"
+          ],
+          "activeCompetitorCount": 3,
+          "eventKind": "full_broadcast",
+          "sampleCount": 1,
+          "utcDayCount": 1,
+          "connectedDurationSeconds": 1210.470063682,
+          "firstObservedAt": "2026-11-12T01:28:30.081564117Z",
+          "lastObservedAt": "2026-11-12T01:28:30.081564117Z",
+          "associationStatus": "insufficient_data",
+          "rawEvidenceAvailable": true,
+          "eligibleCount": 1,
+          "receivedCount": 0,
+          "firstArrivalCount": 0,
+          "tieCount": 0,
+          "firstArrivalShare": 0,
+          "deliveryCoverage": 0,
+          "tieShare": 0,
+          "medianRelativeDelayMs": null,
+          "p95RelativeDelayMs": null,
+          "otherProducers": {
+            "eligibleCount": 91,
+            "receivedCount": 35,
+            "firstArrivalCount": 19,
+            "tieCount": 0
+          },
+          "baselineMatchedEligibleCount": 1,
+          "baselineFirstArrivalShare": 0.2087912087912088,
+          "excessFirstArrivalShare": -0.2087912087912088,
+          "perDay": [
+            {
+              "utcDay": "2026-11-12",
+              "eligibleCount": 1,
+              "receivedCount": 0,
+              "firstArrivalCount": 0,
+              "tieCount": 0,
+              "firstArrivalShare": 0,
+              "deliveryCoverage": 0,
+              "tieShare": 0,
+              "medianRelativeDelayMs": null,
+              "p95RelativeDelayMs": null,
+              "otherProducers": {
+                "eligibleCount": 91,
+                "receivedCount": 35,
+                "firstArrivalCount": 19,
+                "tieCount": 0
+              },
+              "baselineMatchedEligibleCount": 1,
+              "baselineFirstArrivalShare": 0.2087912087912088,
+              "excessFirstArrivalShare": -0.2087912087912088
+            }
+          ],
+          "holdout": {
+            "splitAt": "2026-11-11T22:00:00Z",
+            "earlier": {
+              "eligibleCount": 0,
+              "receivedCount": 0,
+              "firstArrivalCount": 0,
+              "tieCount": 0,
+              "firstArrivalShare": 0,
+              "deliveryCoverage": 0,
+              "tieShare": 0,
+              "medianRelativeDelayMs": null,
+              "p95RelativeDelayMs": null,
+              "otherProducers": {
+                "eligibleCount": 0,
+                "receivedCount": 0,
+                "firstArrivalCount": 0,
+                "tieCount": 0
+              },
+              "baselineMatchedEligibleCount": 0,
+              "baselineFirstArrivalShare": null,
+              "excessFirstArrivalShare": null
+            },
+            "later": {
+              "eligibleCount": 1,
+              "receivedCount": 0,
+              "firstArrivalCount": 0,
+              "tieCount": 0,
+              "firstArrivalShare": 0,
+              "deliveryCoverage": 0,
+              "tieShare": 0,
+              "medianRelativeDelayMs": null,
+              "p95RelativeDelayMs": null,
+              "otherProducers": {
+                "eligibleCount": 91,
+                "receivedCount": 35,
+                "firstArrivalCount": 19,
+                "tieCount": 0
+              },
+              "baselineMatchedEligibleCount": 1,
+              "baselineFirstArrivalShare": 0.2087912087912088,
+              "excessFirstArrivalShare": -0.2087912087912088
+            },
+            "result": "insufficient_data"
+          }
+        },
+        {
+          "pillarName": "AlienApeZ",
+          "pillarNameObservedAt": "2026-11-12T01:59:29.881Z",
+          "producerAddress": "z1qp0mxukh55e6m5q4yxsukz5xhwnt9n5cg49tnj",
+          "peerId": "0316e6152bed5773850c72a79a8eed9c4dd72966d6f5101e860fa73da6c9a064701964cf3e0a09420a60c38000497af4c43c0e1374bfe5120dee0180f7bc30ed",
+          "ip": "51.81.209.53",
+          "advertisedVersion": "0.0.8",
+          "versionObservedAt": "2026-11-12T01:15:51.759Z",
+          "producerSoftwareVersion": null,
+          "cohortId": "306b6661eb46e2d6dec0d1ae",
+          "bootId": "18830ba4a45a7875759a280576d5216d",
+          "cohortSessionIds": [
+            "18830ba4a45a7875759a280576d5216d-1",
+            "18830ba4a45a7875759a280576d5216d-2",
+            "18830ba4a45a7875759a280576d5216d-3",
+            "18830ba4a45a7875759a280576d5216d-4"
+          ],
+          "activeCompetitorCount": 3,
+          "eventKind": "hash_announcement",
+          "sampleCount": 1,
+          "utcDayCount": 1,
+          "connectedDurationSeconds": 1210.470063682,
+          "firstObservedAt": "2026-11-12T01:28:30.068634724Z",
+          "lastObservedAt": "2026-11-12T01:28:30.068634724Z",
+          "associationStatus": "insufficient_data",
+          "rawEvidenceAvailable": true,
+          "eligibleCount": 1,
+          "receivedCount": 1,
+          "firstArrivalCount": 0,
+          "tieCount": 0,
+          "firstArrivalShare": 0,
+          "deliveryCoverage": 1,
+          "tieShare": 0,
+          "medianRelativeDelayMs": 40.838127,
+          "p95RelativeDelayMs": 40.838127,
+          "otherProducers": {
+            "eligibleCount": 107,
+            "receivedCount": 104,
+            "firstArrivalCount": 3,
+            "tieCount": 2
+          },
+          "baselineMatchedEligibleCount": 1,
+          "baselineFirstArrivalShare": 0.028037383177570093,
+          "excessFirstArrivalShare": -0.028037383177570093,
+          "perDay": [
+            {
+              "utcDay": "2026-11-12",
+              "eligibleCount": 1,
+              "receivedCount": 1,
+              "firstArrivalCount": 0,
+              "tieCount": 0,
+              "firstArrivalShare": 0,
+              "deliveryCoverage": 1,
+              "tieShare": 0,
+              "medianRelativeDelayMs": 40.838127,
+              "p95RelativeDelayMs": 40.838127,
+              "otherProducers": {
+                "eligibleCount": 107,
+                "receivedCount": 104,
+                "firstArrivalCount": 3,
+                "tieCount": 2
+              },
+              "baselineMatchedEligibleCount": 1,
+              "baselineFirstArrivalShare": 0.028037383177570093,
+              "excessFirstArrivalShare": -0.028037383177570093
+            }
+          ],
+          "holdout": {
+            "splitAt": "2026-11-11T22:00:00Z",
+            "earlier": {
+              "eligibleCount": 0,
+              "receivedCount": 0,
+              "firstArrivalCount": 0,
+              "tieCount": 0,
+              "firstArrivalShare": 0,
+              "deliveryCoverage": 0,
+              "tieShare": 0,
+              "medianRelativeDelayMs": null,
+              "p95RelativeDelayMs": null,
+              "otherProducers": {
+                "eligibleCount": 0,
+                "receivedCount": 0,
+                "firstArrivalCount": 0,
+                "tieCount": 0
+              },
+              "baselineMatchedEligibleCount": 0,
+              "baselineFirstArrivalShare": null,
+              "excessFirstArrivalShare": null
+            },
+            "later": {
+              "eligibleCount": 1,
+              "receivedCount": 1,
+              "firstArrivalCount": 0,
+              "tieCount": 0,
+              "firstArrivalShare": 0,
+              "deliveryCoverage": 1,
+              "tieShare": 0,
+              "medianRelativeDelayMs": 40.838127,
+              "p95RelativeDelayMs": 40.838127,
+              "otherProducers": {
+                "eligibleCount": 107,
+                "receivedCount": 104,
+                "firstArrivalCount": 3,
+                "tieCount": 2
+              },
+              "baselineMatchedEligibleCount": 1,
+              "baselineFirstArrivalShare": 0.028037383177570093,
+              "excessFirstArrivalShare": -0.028037383177570093
+            },
+            "result": "insufficient_data"
+          }
+        }
+      ],
+      "associationsNextOffset": 2,
+      "identityAssertions": [],
+      "momentums": [
+        {
+          "hash": "beee514d30166faf9248820d424eac209848182337490c7d17921f1a4571fb98",
+          "height": 14645922,
+          "previousHash": "85e5a57ff03df5cddb3a6ae22d5d9bb51e9978e91d3257dc118348364478b68e",
+          "timestamp": 1794478810,
+          "producerAddress": "z1qp0mxukh55e6m5q4yxsukz5xhwnt9n5cg49tnj",
+          "signerConflict": false,
+          "protocolVersion": 1,
+          "verificationState": "rpc_agreed",
+          "source": "wss://my.hc1node.com:35998",
+          "firstObservedAt": "2026-11-12T10:20:10.071Z",
+          "referenceCheckedAt": "2026-11-12T10:45:09.975Z",
+          "producerSoftwareVersion": null
+        },
+        {
+          "hash": "be27633ab4596f3b73b1a748bb9cd19099a30537ea4c96e11912b3ffd35278b0",
+          "height": 14645760,
+          "previousHash": "3f0f63b534927b8b51b10f689baf8a05e5f8d0d4c19c1a0ca7d74a720268344c",
+          "timestamp": 1794477040,
+          "producerAddress": "z1qp0mxukh55e6m5q4yxsukz5xhwnt9n5cg49tnj",
+          "signerConflict": false,
+          "protocolVersion": 1,
+          "verificationState": "rpc_agreed",
+          "source": "wss://my.hc1node.com:35998",
+          "firstObservedAt": "2026-11-12T09:50:40.070Z",
+          "referenceCheckedAt": "2026-11-12T10:23:09.975Z",
+          "producerSoftwareVersion": null
+        }
+      ],
+      "momentumsNextOffset": 2,
+      "nameSnapshots": [
+        {
+          "producerAddress": "z1qp0mxukh55e6m5q4yxsukz5xhwnt9n5cg49tnj",
+          "pillarName": "AlienApeZ",
+          "source": "wss://my.hc1node.com:35998",
+          "observedAt": "2026-11-12T10:44:12.968Z",
+          "historicalAssignmentVerified": false,
+          "producerSoftwareVersion": null
+        },
+        {
+          "producerAddress": "z1qp0mxukh55e6m5q4yxsukz5xhwnt9n5cg49tnj",
+          "pillarName": "AlienApeZ",
+          "source": "wss://my.hc1node.com:35998",
+          "observedAt": "2026-11-12T10:39:12.961Z",
+          "historicalAssignmentVerified": false,
+          "producerSoftwareVersion": null
+        }
+      ],
+      "nameSnapshotsNextOffset": 2,
+      "producerAddress": "z1qp0mxukh55e6m5q4yxsukz5xhwnt9n5cg49tnj",
+      "producerSoftwareVersion": null
+    },
+    "schemaVersion": "1.1",
+    "windowEnd": "2026-11-12T10:45:30Z",
+    "windowStart": "2026-11-11T10:45:30Z"
+  },
+  "pillar-null": {
+    "dataQuality": {
+      "absenceMeansOffline": false,
+      "aggregateRetentionDays": 90,
+      "analysisPendingHours": 0,
+      "analysisProcessedHours": 113,
+      "analysisRetryingHours": 0,
+      "analysisState": "ready",
+      "associationAnalysisImplemented": true,
+      "associationMethodVersion": "association-2",
+      "associationSummariesAvailable": true,
+      "captureDropsInOverlappingRuns": 0,
+      "captureState": "observing",
+      "clockJumpsInOverlappingRuns": 0,
+      "consensusValidated": false,
+      "interruptedRuns": 0,
+      "legacyFeasibilityImported": false,
+      "producerSoftwareVersion": null,
+      "rankingsAvailable": true,
+      "rawHistoryAvailableFrom": "2026-11-05T10:45:30Z",
+      "rawRetentionDays": 7,
+      "ready": true,
+      "recordedGapAndConnectionEvents": 0,
+      "statusUpdatedAt": "2026-11-12T10:45:28.974960155Z"
+    },
+    "generatedAt": "2026-11-12T10:45:28.974960155Z",
+    "methodVersion": "association-2",
+    "observerId": "coolify-observer-01",
+    "result": {
+      "associationAnalysisAvailable": false,
+      "associationSummary": {
+        "excludedComparisonsByReason": null,
+        "excludedHoursByReason": null,
+        "missingHours": 0,
+        "pendingHours": 0,
+        "processedHours": 0,
+        "reason": "no_complete_hours",
+        "retryingHours": 0
+      },
+      "associationWindowEnd": null,
+      "associationWindowStart": null,
+      "associations": [],
+      "associationsNextOffset": null,
+      "identityAssertions": [],
+      "momentums": [
+        {
+          "hash": "be27633ab4596f3b73b1a748bb9cd19099a30537ea4c96e11912b3ffd35278b0",
+          "height": 14645760,
+          "previousHash": "3f0f63b534927b8b51b10f689baf8a05e5f8d0d4c19c1a0ca7d74a720268344c",
+          "timestamp": 1794477040,
+          "producerAddress": "z1qp0mxukh55e6m5q4yxsukz5xhwnt9n5cg49tnj",
+          "signerConflict": false,
+          "protocolVersion": 1,
+          "verificationState": "rpc_agreed",
+          "source": "wss://my.hc1node.com:35998",
+          "firstObservedAt": "2026-11-12T09:50:40.070Z",
+          "referenceCheckedAt": "2026-11-12T10:23:09.975Z",
+          "producerSoftwareVersion": null
+        },
+        {
+          "hash": "e70444a58511f72d008c7dce1af542ffd71f38c22dec44d53b61cb7d9328e8a8",
+          "height": 14645677,
+          "previousHash": "e544c2f71a6a0c9a958ed9c86d27497303246f1905b37e3bc999de268104af5f",
+          "timestamp": 1794476120,
+          "producerAddress": "z1qp0mxukh55e6m5q4yxsukz5xhwnt9n5cg49tnj",
+          "signerConflict": false,
+          "protocolVersion": 1,
+          "verificationState": "rpc_agreed",
+          "source": "wss://my.hc1node.com:35998",
+          "firstObservedAt": "2026-11-12T09:35:20.061Z",
+          "referenceCheckedAt": "2026-11-12T10:08:09.975Z",
+          "producerSoftwareVersion": null
+        }
+      ],
+      "momentumsNextOffset": 2,
+      "nameSnapshots": [
+        {
+          "producerAddress": "z1qp0mxukh55e6m5q4yxsukz5xhwnt9n5cg49tnj",
+          "pillarName": "AlienApeZ",
+          "source": "wss://my.hc1node.com:35998",
+          "observedAt": "2026-11-12T09:54:12.860Z",
+          "historicalAssignmentVerified": false,
+          "producerSoftwareVersion": null
+        },
+        {
+          "producerAddress": "z1qp0mxukh55e6m5q4yxsukz5xhwnt9n5cg49tnj",
+          "pillarName": "AlienApeZ",
+          "source": "wss://my.hc1node.com:35998",
+          "observedAt": "2026-11-12T09:48:13.003Z",
+          "historicalAssignmentVerified": false,
+          "producerSoftwareVersion": null
+        }
+      ],
+      "nameSnapshotsNextOffset": 2,
+      "producerAddress": "z1qp0mxukh55e6m5q4yxsukz5xhwnt9n5cg49tnj",
+      "producerSoftwareVersion": null
+    },
+    "schemaVersion": "1.1",
+    "windowEnd": "2026-11-12T09:59:00Z",
+    "windowStart": "2026-11-12T09:01:00Z"
+  },
+  "momentums": {
+    "dataQuality": {
+      "absenceMeansOffline": false,
+      "aggregateRetentionDays": 90,
+      "analysisPendingHours": 0,
+      "analysisProcessedHours": 113,
+      "analysisRetryingHours": 0,
+      "analysisState": "ready",
+      "associationAnalysisImplemented": true,
+      "associationMethodVersion": "association-2",
+      "associationSummariesAvailable": true,
+      "captureDropsInOverlappingRuns": 0,
+      "captureState": "observing",
+      "clockJumpsInOverlappingRuns": 0,
+      "consensusValidated": false,
+      "interruptedRuns": 1,
+      "legacyFeasibilityImported": false,
+      "producerSoftwareVersion": null,
+      "rankingsAvailable": true,
+      "rawHistoryAvailableFrom": "2026-11-05T10:45:30Z",
+      "rawRetentionDays": 7,
+      "ready": true,
+      "recordedGapAndConnectionEvents": 23,
+      "statusUpdatedAt": "2026-11-12T10:45:28.974960155Z"
+    },
+    "generatedAt": "2026-11-12T10:45:28.974960155Z",
+    "methodVersion": "association-2",
+    "observerId": "coolify-observer-01",
+    "result": {
+      "data": [
+        {
+          "hash": "10a4afc50cce6e75c33ab18a02d3a3e8376f7bcbc667901eae88329ae55da4b2",
+          "height": 14646063,
+          "previousHash": "b406b5454b9849a3305d5e6188cfffdee89c93c109768f6769c953d03556203c",
+          "timestamp": 1794480320,
+          "producerAddress": "z1qp930kvkrpreke27mqf9nvedpn0cfd5f6qmr8y",
+          "signerConflict": false,
+          "protocolVersion": 1,
+          "verificationState": "rpc_observed",
+          "source": "wss://my.hc1node.com:35998",
+          "firstObservedAt": "2026-11-12T10:45:20.058Z",
+          "referenceCheckedAt": null,
+          "producerSoftwareVersion": null
+        },
+        {
+          "hash": "b406b5454b9849a3305d5e6188cfffdee89c93c109768f6769c953d03556203c",
+          "height": 14646062,
+          "previousHash": "7aaeec036a04ad9616b42f65e52e3b9e718cd14211d2003622f6324d8ff2a16f",
+          "timestamp": 1794480310,
+          "producerAddress": "z1qr9yer2qlhthg0c5jh5j6pzcc8c8ta8tdljk57",
+          "signerConflict": false,
+          "protocolVersion": 1,
+          "verificationState": "rpc_observed",
+          "source": "p2p",
+          "firstObservedAt": "2026-11-12T10:45:10.069Z",
+          "referenceCheckedAt": null,
+          "producerSoftwareVersion": null
+        }
+      ],
+      "nextOffset": 2
+    },
+    "schemaVersion": "1.1",
+    "windowEnd": "2026-11-12T10:45:30Z",
+    "windowStart": "2026-11-11T10:45:30Z"
+  },
+  "peers": {
+    "dataQuality": {
+      "absenceMeansOffline": false,
+      "aggregateRetentionDays": 90,
+      "analysisPendingHours": 0,
+      "analysisProcessedHours": 113,
+      "analysisRetryingHours": 0,
+      "analysisState": "ready",
+      "associationAnalysisImplemented": true,
+      "associationMethodVersion": "association-2",
+      "associationSummariesAvailable": true,
+      "captureDropsInOverlappingRuns": 0,
+      "captureState": "observing",
+      "clockJumpsInOverlappingRuns": 0,
+      "consensusValidated": false,
+      "interruptedRuns": 1,
+      "legacyFeasibilityImported": false,
+      "producerSoftwareVersion": null,
+      "rankingsAvailable": true,
+      "rawHistoryAvailableFrom": "2026-11-05T10:45:30Z",
+      "rawRetentionDays": 7,
+      "ready": true,
+      "recordedGapAndConnectionEvents": 23,
+      "statusUpdatedAt": "2026-11-12T10:45:28.974960155Z"
+    },
+    "generatedAt": "2026-11-12T10:45:28.974960155Z",
+    "methodVersion": "association-2",
+    "observerId": "coolify-observer-01",
+    "result": {
+      "data": [
+        {
+          "sessionId": "b0fb2e990411cac1c6c5d0579824ec2d-4",
+          "bootId": "b0fb2e990411cac1c6c5d0579824ec2d",
+          "peerId": "0ee6563a924a42912ab47fe87503f205527c4e8d9ffb1fd5a1a11a81a6d92f1f0df5a697e90cbdd23376bc1ccf4902ed5a23290aa4d1b5b10a40ac11e13190c4",
+          "ip": "51.79.146.74",
+          "port": 35995,
+          "clientName": "v0.0.9 znn-node",
+          "advertisedVersion": "0.0.9",
+          "capabilities": [
+            "eth/61"
+          ],
+          "versionObservedAt": "2026-11-12T02:09:14.628Z",
+          "connectedAt": "2026-11-12T02:09:14.192Z",
+          "disconnectedAt": null,
+          "disconnectReason": "",
+          "statusCompletedMonoNs": 4654372498,
+          "disconnectedMonoNs": 0,
+          "uncleanShutdown": false
+        },
+        {
+          "sessionId": "b0fb2e990411cac1c6c5d0579824ec2d-3",
+          "bootId": "b0fb2e990411cac1c6c5d0579824ec2d",
+          "peerId": "0c5213f89c748aab5c39e63bdc65bd97bf446a5229e640086e2784217d24731d78ab53ee5316619dc4299ab759304c5859272d35cfab74fd9106753e0db3d14e",
+          "ip": "135.148.32.194",
+          "port": 35995,
+          "clientName": "v0.0.8 znn-node",
+          "advertisedVersion": "0.0.8",
+          "capabilities": [
+            "eth/61"
+          ],
+          "versionObservedAt": "2026-11-12T02:09:13.040Z",
+          "connectedAt": "2026-11-12T02:09:12.997Z",
+          "disconnectedAt": null,
+          "disconnectReason": "",
+          "statusCompletedMonoNs": 3066362710,
+          "disconnectedMonoNs": 0,
+          "uncleanShutdown": false
+        }
+      ],
+      "nextOffset": 2
+    },
+    "schemaVersion": "1.1",
+    "windowEnd": "2026-11-12T10:45:30Z",
+    "windowStart": "2026-11-11T10:45:30Z"
+  },
+  "arrivals": {
+    "dataQuality": {
+      "absenceMeansOffline": false,
+      "aggregateRetentionDays": 90,
+      "analysisPendingHours": 0,
+      "analysisProcessedHours": 113,
+      "analysisRetryingHours": 0,
+      "analysisState": "ready",
+      "associationAnalysisImplemented": true,
+      "associationMethodVersion": "association-2",
+      "associationSummariesAvailable": true,
+      "captureDropsInOverlappingRuns": 0,
+      "captureState": "observing",
+      "clockJumpsInOverlappingRuns": 0,
+      "consensusValidated": false,
+      "interruptedRuns": 1,
+      "legacyFeasibilityImported": false,
+      "producerSoftwareVersion": null,
+      "rankingsAvailable": true,
+      "rawHistoryAvailableFrom": "2026-11-05T10:45:30Z",
+      "rawRetentionDays": 7,
+      "ready": true,
+      "recordedGapAndConnectionEvents": 23,
+      "statusUpdatedAt": "2026-11-12T10:45:28.974960155Z"
+    },
+    "generatedAt": "2026-11-12T10:45:28.974960155Z",
+    "methodVersion": "association-2",
+    "observerId": "coolify-observer-01",
+    "result": {
+      "data": [
+        {
+          "observerId": "coolify-observer-01",
+          "bootId": "b0fb2e990411cac1c6c5d0579824ec2d",
+          "sessionId": "b0fb2e990411cac1c6c5d0579824ec2d-3",
+          "peerId": "0c5213f89c748aab5c39e63bdc65bd97bf446a5229e640086e2784217d24731d78ab53ee5316619dc4299ab759304c5859272d35cfab74fd9106753e0db3d14e",
+          "hash": "10a4afc50cce6e75c33ab18a02d3a3e8376f7bcbc667901eae88329ae55da4b2",
+          "eventKind": "hash_announcement",
+          "arrivedAt": "2026-11-12T10:45:20.058608359Z",
+          "monotonicNs": 30970084600113,
+          "duplicateCount": 1,
+          "eligible": true,
+          "exclusionReason": "",
+          "verificationState": "rpc_observed",
+          "producerAddress": "z1qp930kvkrpreke27mqf9nvedpn0cfd5f6qmr8y",
+          "ip": "135.148.32.194",
+          "advertisedVersion": "0.0.8",
+          "versionObservedAt": "2026-11-12T02:09:13.040Z",
+          "producerSoftwareVersion": null,
+          "rankingEligible": null,
+          "rankingEligibilityReason": "determined_by_comparison_window"
+        },
+        {
+          "observerId": "coolify-observer-01",
+          "bootId": "b0fb2e990411cac1c6c5d0579824ec2d",
+          "sessionId": "b0fb2e990411cac1c6c5d0579824ec2d-2",
+          "peerId": "072792b916d53179692b01d3d60b38f6fcb37fa8f4bf111b55007546035f2a5244b269c8875a22e422cc336df6784659f67026107d96225c250d47eacbe9d7a1",
+          "hash": "10a4afc50cce6e75c33ab18a02d3a3e8376f7bcbc667901eae88329ae55da4b2",
+          "eventKind": "hash_announcement",
+          "arrivedAt": "2026-11-12T10:45:20.068722118Z",
+          "monotonicNs": 30970094713862,
+          "duplicateCount": 1,
+          "eligible": true,
+          "exclusionReason": "",
+          "verificationState": "rpc_observed",
+          "producerAddress": "z1qp930kvkrpreke27mqf9nvedpn0cfd5f6qmr8y",
+          "ip": "23.95.73.26",
+          "advertisedVersion": "0.0.9",
+          "versionObservedAt": "2026-11-12T02:09:12.045Z",
+          "producerSoftwareVersion": null,
+          "rankingEligible": null,
+          "rankingEligibilityReason": "determined_by_comparison_window"
+        }
+      ],
+      "nextOffset": 2
+    },
+    "schemaVersion": "1.1",
+    "windowEnd": "2026-11-12T10:45:30Z",
+    "windowStart": "2026-11-11T10:45:30Z"
+  }
+}

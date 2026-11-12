@@ -20,6 +20,11 @@ Prefer the full network endpoint for a coherent snapshot. Check node and handsha
 - [Observed IPs](https://tw7v2v7y9rjq7mle1isnlktq.172.245.238.165.sslip.io/api/v1/ips): deduplicated public addresses retaining associated node IDs.
 - [Momentum projections](https://tw7v2v7y9rjq7mle1isnlktq.172.245.238.165.sslip.io/api/v1/momentums): upcoming slots, recent outcomes, replay checks, and explicitly linked software versions; always projections, not guaranteed production.
 
+## Independent Observer (optional feature)
+
+- [Observer API](https://zsjo46q7s0qcmaklbmak7gfp.172.245.238.165.sslip.io/api/v1/associations?limit=10): schema 1.1 / association-2 relay comparisons; filter with a full producing address and preserve dates while paging.
+- Relay advertised versions describe relays. Producer software stays unknown without a separately configured identity link. Association status is a sample/day threshold, not ownership or producer-version proof. Keep cohorts/event kinds separate and report incomplete hour coverage.
+
 ## Optional
 
 - [Historical fallback snapshot](https://0x3639.com/go-zenon-version/data/network.json): real saved data; inspect generatedAt and per-node times before use.
