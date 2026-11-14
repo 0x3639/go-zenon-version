@@ -16,15 +16,15 @@ if (!snapshot.sources.some(s => s.status === 'ok')) {
 } else {
   snapshot.release = previousRelease;
   try {
-    const response = await fetch('https://api.github.com/repos/zenon-network/go-zenon/releases/latest', {
+    const response = await fetch('https://api.github.com/repos/zenon-network/go-zenon-releases/releases/latest', {
       headers: { Accept: 'application/vnd.github+json' }, signal: AbortSignal.timeout(10000),
     });
     if (!response.ok) throw new Error(`GitHub HTTP ${response.status}`);
     const release = await response.json();
-    // The release title is the binary version; the tag includes the network label "-alphanet".
+    // Prefer the release title, falling back to the published tag.
     const version = parseVersion(release.name) ?? parseVersion(release.tag_name);
     if (version) snapshot.release = { version, tag: release.tag_name,
-      url: `https://github.com/zenon-network/go-zenon/releases/tag/${encodeURIComponent(release.tag_name)}`,
+      url: `https://github.com/zenon-network/go-zenon-releases/releases/tag/${encodeURIComponent(release.tag_name)}`,
       checkedAt: new Date().toISOString() };
   } catch (error) { console.warn('Could not refresh release metadata:', String(error)); }
   await mkdir(new URL('../public/data/', import.meta.url), { recursive: true });
