@@ -32,3 +32,12 @@ export function parseAssociationPage(value: unknown, query: AssociationQuery, of
   data.result.data = [...new Map(data.result.data.map(row => [associationKey(row), row])).values()];
   return data;
 }
+
+export function associationProgress(row: ObserverAssociation) {
+  return { samplesNeeded: Math.max(0, 100 - row.sampleCount), daysNeeded: Math.max(0, 3 - row.utcDayCount),
+    emptyHalf: row.holdout.earlier.eligibleCount === 0 && row.holdout.later.eligibleCount > 0 ? 'earlier' :
+      row.holdout.later.eligibleCount === 0 && row.holdout.earlier.eligibleCount > 0 ? 'later' : null };
+}
+export function newerAssociationHours(windowEnd: string, now: number) {
+  return Math.max(0, Math.floor((Date.parse(associationWindow(1, now).to) - Date.parse(windowEnd)) / 3600000));
+}

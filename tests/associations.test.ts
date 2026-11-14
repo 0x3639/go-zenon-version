@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { parseObserverAnalysis, parseObserverArrivals, parseObserverMomentums, parseObserverPeers, parseObserverPillar, parseObserverStatus, observerIsStale, fetchObserver } from '../src/observer.ts';
-import { associationKey, associationURL, associationWindow, parseAssociationPage } from '../src/association-query.ts';
+import { associationProgress, newerAssociationHours, associationKey, associationURL, associationWindow, parseAssociationPage } from '../src/association-query.ts';
 
 const fixture = JSON.parse(readFileSync(new URL('./fixtures/observer-1.1.json', import.meta.url), 'utf8'));
 const copy = (key = 'associations') => structuredClone(fixture[key]);
@@ -95,4 +95,20 @@ test('fresh transport does not refresh historical computation, stale snapshots, 
   const signal = new AbortController().signal;
   await assert.rejects(fetchObserver('https://observer.example', parseObserverAnalysis, signal, async () => new Response('{}', { status: 503 })));
   assert.equal(parsed.generatedAt, raw.generatedAt); assert.equal(parsed.result.data.length, 2);
+});
+
+test('association progress explains missing samples/days and an empty holdout half without pooling rows', () => {
+  const row = parseObserverAnalysis(copy()).result.data[0];
+  assert.deepEqual(associationProgress(row), { samplesNeeded: 99, daysNeeded: 2, emptyHalf: 'earlier' });
+  const enough = { ...row, sampleCount: 120, utcDayCount: 4 };
+  assert.equal(associationProgress(enough).samplesNeeded, 0); assert.equal(associationProgress(enough).daysNeeded, 0);
+  assert.equal(associationProgress({ ...row, holdout: { ...row.holdout, earlier: row.holdout.later, later: row.holdout.earlier } }).emptyHalf, 'later');
+});
+test('new complete hours are advertised after the grace period without changing the selected window', () => {
+  const end = '2026-11-14T10:00:00Z';
+  assert.equal(newerAssociationHours(end, Date.parse('2026-11-14T11:01:59Z')), 0);
+  assert.equal(newerAssociationHours(end, Date.parse('2026-11-14T11:02:00Z')), 1);
+  assert.equal(newerAssociationHours(end, Date.parse('2026-11-14T13:02:00Z')), 3);
+  assert.equal(newerAssociationHours(end, Date.parse('2026-11-14T09:00:00Z')), 0);
+  assert.equal(end, '2026-11-14T10:00:00Z');
 });

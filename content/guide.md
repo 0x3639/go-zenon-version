@@ -6,12 +6,14 @@ Zenon Observatory is a community-built dashboard for **observed Zenon network pe
 
 ## Using the dashboard
 
-1. Start with **Observed nodes**, the number of distinct peer public keys in the current snapshot. The public-IP total groups shared addresses without merging their node identities.
+1. Start with **Reported peers**, distinct peer public keys with RPC, peer-list, or P2P software-name evidence. Discovery-only neighbor referrals are counted separately; **View discovery candidates** opens them in the explorer. A failed inbound handshake does not remove a reported peer. The public-IP total groups shared addresses without merging their identities.
 2. Use **Peer explorer** to search an address, public key, advertised name, or version. Combine the version, observation, node-role, and P2P-result filters.
 3. Select **Seed nodes**, **go-zenon seeds**, or **RPC seeds** to inspect bootstrap infrastructure. A peer merely reported by a seed is not itself a seed.
 4. Open a peer for the advertised name, source reports, exact checked endpoint, connection result, and observation times.
 5. **Export CSV** exports the filtered peer rows and available handshake history. **Unique IPs** exports the filtered addresses once each, retaining all associated public keys.
 6. **Momentum watch** shows the next projected pillar, a countdown, a selectable timeline, and recent outcomes. This feed refreshes every ten seconds while the tab is visible.
+
+**Version adoption uses peers with known versions as its denominator**, excluding unknown versions and discovery-only candidates. The constellation and version distribution show reported peers, including unparseable software versions. If a peer advertises a newer version than the configured GitHub release feed, the card says **Highest observed version** and displays that version; it does not certify a release. The GitHub published release and lookup time are shown separately. Otherwise the card says **Published release adoption**. Distribution percentages include reported peers with unknown versions, so they can differ from the adoption percentage.
 
 The dashboard refreshes the discovery API about once a minute while the tab is visible. Connection settings can point a visitor's browser at another compatible API. Clearing that setting switches to the saved snapshot plus browser RPC observations, so always check the displayed data source before interpreting a screenshot.
 
@@ -43,13 +45,13 @@ Each row is one producer/relay/cohort/event-category comparison. Reconnects or v
 
 The **matched baseline** is that same relay's other-producer strict-first share in comparable hours. **Excess share** compares the matched subset only; check its matched sample count. Filtering by producer does not alter this stored baseline. The **chronological holdout** compares earlier and later halves of the fixed query window. Its result is descriptive: insufficient data, persistent positive pattern, no persistent specific advantage, or unstable pattern. Expand the row for half/day measurements, denominators, cohort sessions, and raw-retention status.
 
-**Sample/day threshold met** translates `observed_relay_association`: at least 100 comparable samples over three UTC days. Negative findings can meet this threshold too. It does not prove ownership, statistical significance, or producer software. Holdout results need additional per-half sample and baseline coverage checks. One observer cannot remove routing bias.
+**Sample/day threshold met** translates `observed_relay_association`: at least 100 comparable samples over three UTC days. Negative findings can meet this threshold too. It does not prove ownership, statistical significance, or producer software. Each insufficient row shows the remaining samples and UTC days in that comparison group. Reconnects, upgrades, and observer restarts create separate groups; waiting alone will not help if those groups keep changing. The page reports how many displayed rows pass, without making a claim about unrequested pages. Holdout results need additional per-half sample and baseline coverage checks. An empty earlier or later half is explained explicitly: fresh collection cannot supply evidence for a historical half with no eligible samples. One observer cannot remove routing bias.
 
 ### Coverage, dates, and partial results
 
 Summary availability means current-method summaries exist and chain continuity is resolved; it does not mean any row passes the sample/day threshold. Read processed, pending, retrying, missing, and excluded hours. Retrying hours are part of pending hours, not an extra count. Dirty/retrying hours are withheld. Whole-hour exclusions are separate from the legacy combined exclusion counts. Missing hours are unknown coverage, not zero observations or proof of offline pillars. Raw-history expiry limits exact recomputation.
 
-The default association interval is seven complete UTC days ending at an hour boundary with a two-minute grace. The frontend fixes both dates during paging and polling. **Update window** begins a new interval. Page sizes are bounded; only the current page is displayed, with **Partial results** when applicable. Late evidence can shift rows between pages because offset pagination is not a snapshot. Shorten the window or reduce rows if a query exceeds a limit. Raw queries have a separate 24-hour limit; a pillar's raw-history association window may be narrower. Null association bounds mean **no complete hours**, not unknown/zero dates. `generatedAt` is response freshness; `computedAt` is summary computation time.
+The default association interval is seven complete UTC days ending at an hour boundary with a two-minute grace. The frontend fixes both dates during paging and polling. **Update window** begins a new interval and returns to page one. A notice appears when newer complete hours can be requested; automatic polling does not silently move the selected dates. New hours may still be pending analysis. Rows are historical measurements, not a ranking or a network-wide conclusion; use the full producing-address filter or a pillar’s **View relay evidence** action. Page sizes are bounded; only the current page is displayed, with **Partial results** when applicable. Late evidence can shift rows between pages because offset pagination is not a snapshot. Shorten the window or reduce rows if a query exceeds a limit. Raw queries have a separate 24-hour limit; a pillar's raw-history association window may be narrower. Null association bounds mean **no complete hours**, not unknown/zero dates. `generatedAt` is response freshness; `computedAt` is summary computation time.
 
 The [independent Observer API contract](https://github.com/0x3639/go-zenon-pillar-version/blob/eec750f3bc31cb8f2bd523fc7066ae49435b640b/docs/api.md) and [analysis interpretation rules](https://github.com/0x3639/go-zenon-pillar-version/blob/eec750f3bc31cb8f2bd523fc7066ae49435b640b/docs/association-analysis.md) define the measurements and limits. A legacy service with analysis unavailable still shows pending; current comparison summaries are rendered when available.
 
@@ -74,8 +76,10 @@ Direct proof belongs to its recorded **IP and port**. If either changes, an olde
 
 ## Counts that must stay separate
 
-- **Observed nodes:** `nodes.length`, deduplicated by the 128-character peer public key.
-- **Observed public IPs:** distinct public addresses associated with observed nodes. Several identities can share an address. Hostnames are not IP addresses.
+- **API observed identities:** `nodes.length`, deduplicated by the 128-character peer public key, including discovery-only referrals.
+- **Reported peers (overview and default explorer):** API identities with `evidence` equal to `p2p`, `rpc`, or `peer`. These remain reported even when software cannot be parsed or a later handshake fails.
+- **Discovery-only candidates:** API identities with `evidence: "discovery"`, accessible via the evidence filter or **View discovery candidates**. They are excluded from overview peer counts and charts; no IP range is blacklisted. **All observations** includes both groups.
+- **Overview public IPs:** distinct public addresses associated with reported peers. The explorer’s IP export instead follows its active filters. Several identities can share an address. Hostnames are not IP addresses.
 - **P2P-confirmed peers:** nodes whose latest matching-endpoint handshake succeeded; check its time. A historical success followed by a failed attempt is not a current successful result.
 - **Registered pillars:** `pillarCount`, an on-chain registration count from `embedded.pillar.getAll`. This is not the denominator for peer coverage, and a peer identity alone does not identify a pillar operator.
 - **Known endpoints:** `crawl.candidates`, including discovered endpoints and built-in bootstrap candidates. Unobserved seed-list entries do not inflate observed-node totals.

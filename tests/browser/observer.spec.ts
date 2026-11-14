@@ -221,3 +221,26 @@ test('live Observer integration uses current responses and the production CORS o
   await momentum.locator('.association-card').first().screenshot({ path: `.qa/live-relay-card-${info.project.name}.png` });
   await info.attach('live-requests', { body: JSON.stringify({ generatedAt: body.generatedAt, schemaVersion: body.schemaVersion, methodVersion: body.methodVersion, responses }, null, 2), contentType: 'application/json' });
 });
+
+test('association progress explains insufficient cohorts and warns when fixed dates omit newer hours', async ({ page }) => {
+  test.skip(disabled);
+  const state = await setup(page); await page.goto('/#observer');
+  const panel = page.locator('#observer');
+  await expect(panel.locator('.association-progress-summary')).toContainText('0 of 2 rows on this page');
+  await expect(panel.locator('.association-card').first()).toContainText('99 more comparable samples and 2 more UTC days');
+  await expect(panel.locator('.association-card').first()).toContainText('No eligible samples in the earlier half');
+  const first = state.requested.find(u => u.pathname.endsWith('associations') && u.searchParams.has('from'))!;
+  await panel.getByRole('button', { name: 'Next page', exact: true }).click();
+  await expect(panel.getByText('Page 2 · 2 rows · Partial results')).toBeVisible();
+  // Advancing wall time should offer new hours without silently moving a paged query.
+  await page.clock.setSystemTime(new Date('2026-11-12T12:05:00Z'));
+  await page.clock.runFor(31000);
+  await expect(panel.locator('.association-window-notice')).toContainText('newer complete UTC');
+  const last = state.requested.filter(u => u.pathname.endsWith('associations')).at(-1)!;
+  expect(last.searchParams.get('to')).toBe(first.searchParams.get('to'));
+  await panel.getByRole('button', { name: 'Update window' }).click();
+  await expect(panel.getByText('Page 1 · 2 rows · Partial results')).toBeVisible();
+  const updated = state.requested.filter(u => u.pathname.endsWith('associations')).at(-1)!;
+  expect(updated.searchParams.get('to')).toBe('2026-11-12T12:00:00.000Z');
+  await expect(panel.locator('.association-window-notice')).toHaveCount(0);
+});
