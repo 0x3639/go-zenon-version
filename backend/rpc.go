@@ -147,10 +147,26 @@ func readSeed(ctx context.Context, address string) ([]Node, Source) {
 	return nodes, source
 }
 
+const releaseAPI = "https://api.github.com/repos/zenon-network/go-zenon-releases/releases/latest"
+const releaseTagURL = "https://github.com/zenon-network/go-zenon-releases/releases/tag/"
+
+func releaseNeedsRefresh(release *Release, at time.Time) bool {
+	// A deployment changing the source must not retain a fresh cache from the old repository.
+	if release == nil || !strings.HasPrefix(release.URL, releaseTagURL) {
+		return true
+	}
+	checked, err := time.Parse(time.RFC3339, release.CheckedAt)
+	return err != nil || at.Before(checked) || at.Sub(checked) >= 24*time.Hour
+}
+
 func latestRelease(ctx context.Context) *Release {
-	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, "https://api.github.com/repos/zenon-network/go-zenon/releases/latest", nil)
+	return fetchLatestRelease(ctx, &http.Client{Timeout: 8 * time.Second})
+}
+
+func fetchLatestRelease(ctx context.Context, client *http.Client) *Release {
+	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, releaseAPI, nil)
 	req.Header.Set("Accept", "application/vnd.github+json")
-	response, err := (&http.Client{Timeout: 8 * time.Second}).Do(req)
+	response, err := client.Do(req)
 	if err != nil {
 		return nil
 	}
@@ -169,8 +185,8 @@ func latestRelease(ctx context.Context) *Release {
 	if v == nil {
 		v = version(result.Tag)
 	}
-	if v == nil {
+	if v == nil || result.Tag == "" {
 		return nil
 	}
-	return &Release{*v, result.Tag, "https://github.com/zenon-network/go-zenon/releases/tag/" + url.PathEscape(result.Tag), now()}
+	return &Release{*v, result.Tag, releaseTagURL + url.PathEscape(result.Tag), now()}
 }

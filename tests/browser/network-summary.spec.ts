@@ -36,6 +36,14 @@ test('referrals remain accessible without inflating overview or the newer observ
   await page.getByRole('button', { name: 'View discovery candidates' }).click();
   await expect(page.locator('#peers .count-label')).toHaveText('102');
   await expect(page.locator('#peers .table-version').first()).toHaveText('Unknown');
+  const versionLegend = page.locator('.legend').getByRole('button', { name: /v0\.0\.10/ });
+  await versionLegend.click();
+  await expect(page.getByLabel('Filter by evidence')).toHaveValue('reported');
+  await expect(page.locator('#peers .count-label')).toHaveText('47');
+  await expect(page.getByLabel('Filter by version')).toHaveValue('v0.0.10');
+  await versionLegend.click();
+  await expect(page.getByLabel('Filter by version')).toHaveValue('all');
+  await expect(page.locator('#peers .count-label')).toHaveText('64');
   await page.getByLabel('Filter by evidence').selectOption('all');
   await expect(page.locator('#peers .count-label')).toHaveText('166');
   await page.getByLabel('Filter by evidence').selectOption('reported');

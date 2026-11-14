@@ -61,9 +61,11 @@ The peer explorer labels **go-zenon seeds** by public-key membership in the vali
 
 ### Peer totals and release labels
 
-The overview and default explorer show **Reported peers** (RPC, peer-list, or P2P software-name evidence). Discovery-only neighbor referrals have their own count and **View discovery candidates** action; **All observations** retains every API identity. Failed inbound attempts and unparseable software reports remain visible. The API, crawler, retention, and identity/IP deduplication are unchanged.
+The overview and default explorer show **Reported peers** (RPC, peer-list, or P2P software-name evidence). Discovery-only neighbor referrals have their own count and **View discovery candidates** action; **All observations** retains every API identity. Failed inbound attempts and unparseable software reports remain visible. Peer collection, retention, and identity/IP deduplication are unchanged.
 
-The adoption card counts only peers with known versions. A version newer than the GitHub release record is shown as **Highest observed version**, with the published version and lookup time separately visible. Peer advertisements do not certify releases. Otherwise it shows **Published release adoption**. No version is hardcoded. Charts include all reported peers, including unknown versions; the adoption denominator is narrower.
+The adoption card counts only peers with known versions. A version newer than the GitHub release record is shown as **Highest observed version**, with the published version and lookup time separately visible. Peer advertisements do not certify releases. With no release metadata it also shows **Highest observed version**, omitting the published record and lookup time. With metadata and no newer observed version, it shows **Published release adoption**. No version is hardcoded. Charts include all reported peers, including unknown versions; the adoption denominator is narrower.
+
+The discovery service and optional snapshot collector read releases from [zenon-network/go-zenon-releases](https://github.com/zenon-network/go-zenon-releases/releases), where v0.0.10 is published. Redeploy the discovery service in Coolify after this source correction. Cached metadata from the old `go-zenon` repository is refreshed on the next scan instead of waiting for the 24-hour cache interval; a failed lookup retains its previous value and timestamp for retry. The independent Observer needs no redeploy.
 
 ### API
 

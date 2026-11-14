@@ -281,9 +281,7 @@ func runScan(ctx context.Context, c config, key *ecdsa.PrivateKey, data *store, 
 			break
 		}
 	}
-	if release == nil {
-		release = latestRelease(seedCtx)
-	} else if checked, e := time.Parse(time.RFC3339, release.CheckedAt); e != nil || time.Since(checked) > 24*time.Hour {
+	if releaseNeedsRefresh(release, time.Now()) {
 		if r := latestRelease(seedCtx); r != nil {
 			release = r
 		}
