@@ -5,7 +5,7 @@ Validated November 15, 2026. This update replaces the independent Observer integ
 ## What users see
 
 - **Pillars** navigation opens a searchable, sortable list with current pillar name, full producing address, produced count since the configured cutoff, share, latest production, and activity. A public RPC's registered pillars with zero counts remain in the list.
-- **Possibly forked out** means at least one hour without production, measured through the checked chain tip. Complete and fresh coverage is required. This is an inactivity flag; downtime, missed slots, low election frequency, and new registrations can also explain it. It does not prove a different chain.
+- **Possibly forked out** requires zero production since the cutoff and at least one hour of history through the checked chain tip. A positive count always excludes the warning; a later one-hour gap is **No production in 1h**. Complete and fresh coverage is required. This is an inactivity flag; downtime, missed slots, low election frequency, and new registrations can also explain it. It does not prove a different chain.
 - **Momentum timing** shows actual producers and every stored interval, with 10 seconds as the expected cadence. Longer gaps are highlighted. Latest/average/longest statistics cover the full checked reporting window. Older pages remain fixed while the current snapshot updates.
 - Observer navigation, its entire panel, selected-pillar relay evidence, all associated requests, and its build variables are removed. The reconstruction-mismatch warning is removed; stale-schedule warnings and projection labels remain.
 - Software versions still require the existing configured identity link. No production record, inactivity result, IP, or name fills an unknown software version or changes `PILLAR_PEERS_JSON`.
@@ -74,3 +74,13 @@ To roll back, deploy the prior discovery commit and revert the frontend change. 
 PR #4's review identified a startup deadline shorter than a slow-but-healthy timestamp search. The initial source attempt now has a bounded five-minute allowance until the first production checkpoint; subsequent attempts retain the 45-second limit. Each RPC retains its existing timeout and shutdown cancellation still takes precedence. A deterministic regression at height 14.7 million accounts for two seconds per RPC without wall-clock sleeps: the old deadline fails before any records commit, while the initial allowance completes the search and count. Normal polling and parent cancellation are also checked.
 
 The panel and machine-readable entry points now say **reporting cutoff** and clarify that it is not an independently verified fork height. The configured date, counts, and one-hour inactivity rule are unchanged. Screenshots above record the original PR #4 labels. Follow-up validation passed 31 frontend tests, eight production browser tests across desktop/mobile, the site build, and all Go race tests/build in containers.
+
+## Production evidence takes precedence over inactivity
+
+The activity classifier now reserves the fork warning for **zero-count pillars only**. A positive count anywhere in the reporting window permanently excludes that warning for that window. After a later gap of at least one hour, the row shows **No production in 1h** instead; the fork-warning filter excludes it. Stale, partial, and failed feeds continue to pause activity assessment.
+
+At `2026-11-15T17:20:32Z`, the live API reported one momentum each for **alien-valley.io** (09:50:30 CST) and **SolarSail** (09:49:50 CST). Replaying that exact payload at its observation time confirmed both receive the neutral inactivity label. Every positive-count row was excluded from the fork-warning classification, and the warning filter displayed only zero-count rows on desktop and mobile.
+
+Validation: 32 frontend tests and the production/site build passed in nodebox; ten production browser tests passed across desktop/mobile. Regressions cover a single early momentum followed by a long gap, the exact one-hour boundary, stale/partial/error suppression, and a zero-count pillar that subsequently produces. The previous backend startup fix is unchanged.
+
+[Corrected desktop row](previews/pillar-activity-correction-desktop.png) · [Corrected mobile row](previews/pillar-activity-correction-mobile.png)

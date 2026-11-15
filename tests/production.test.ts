@@ -10,7 +10,7 @@ test('chain counts and intervals parse without inferring software or identities'
 });
 test('inactivity threshold is one hour and requires complete fresh coverage', () => {
   const s = parseProduction(fixture()); assert.equal(pillarActivity(s.pillars[0], s, now), 'recent'); assert.equal(pillarActivity(s.pillars[2], s, now), 'possible-fork');
-  assert.equal(pillarActivity({ ...s.pillars[0], lastTimestamp: s.frontier!.timestamp - 3600 }, s, now), 'possible-fork');
+  assert.equal(pillarActivity({ ...s.pillars[0], lastTimestamp: s.frontier!.timestamp - 3600 }, s, now), 'quiet');
   const never = s.pillars[2];
   for (const elapsed of [3599, 3600]) {
     const value = { ...s, since: new Date((s.frontier!.timestamp - elapsed) * 1000).toISOString() };
@@ -19,6 +19,21 @@ test('inactivity threshold is one hour and requires complete fresh coverage', ()
   for (const status of ['stale', 'unavailable', 'backfilling'] as const) assert.equal(pillarActivity(never, { ...s, status }, now), 'waiting');
   assert.equal(pillarActivity(never, { ...s, complete: false }, now), 'waiting'); assert.equal(pillarActivity(never, s, now + 100), 'waiting');
   assert.equal(productionFresh(s, now - 300), false);
+});
+test('a positive production count never becomes a fork warning after a later gap', () => {
+  const s = parseProduction(fixture());
+  for (const count of [1, 2, 100]) for (const elapsed of [3599, 3600, 3601, 7200]) {
+    const p = { ...s.pillars[0], count, lastTimestamp: s.frontier!.timestamp - elapsed };
+    assert.equal(pillarActivity(p, s, now), elapsed < 3600 ? 'recent' : 'quiet');
+    for (const status of ['stale', 'unavailable', 'backfilling'] as const) assert.equal(pillarActivity(p, { ...s, status }, now), 'waiting');
+    assert.equal(pillarActivity(p, { ...s, complete: false }, now), 'waiting');
+    assert.equal(pillarActivity(p, s, now + 100), 'waiting');
+  }
+  assert.equal(pillarActivity({ ...s.pillars[0], lastTimestamp: null }, s, now), 'waiting');
+  const previouslyFlagged = s.pillars[2];
+  assert.equal(pillarActivity(previouslyFlagged, s, now), 'possible-fork');
+  assert.equal(pillarActivity({ ...previouslyFlagged, count: 1, lastTimestamp: s.frontier!.timestamp }, s, now), 'recent');
+  assert.equal(pillarActivity({ ...previouslyFlagged, count: 1, lastTimestamp: s.frontier!.timestamp - 3600 }, s, now), 'quiet');
 });
 test('partial, unavailable and empty history remain explicit', () => {
   const s = fixture(); s.complete = false; s.remaining = 20; s.frontier.height += 20; s.status = 'backfilling'; assert.equal(parseProduction(s).complete, false);
