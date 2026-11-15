@@ -6,7 +6,7 @@ Zenon Observatory is a community-built dashboard for **observed Zenon network pe
 
 ## Using the dashboard
 
-1. Start with **Reported peers**, distinct peer public keys with RPC, peer-list, or P2P software-name evidence. Discovery-only neighbor referrals are counted separately; **View discovery candidates** opens them in the explorer. A failed inbound handshake does not remove a reported peer. The public-IP total groups shared addresses without merging their identities.
+1. Start with **Reported peers**, distinct peer public keys within the version scope with RPC, peer-list, or P2P software-name evidence. Discovery-only neighbor referrals are counted separately; **View discovery candidates** opens them in the explorer. A failed inbound handshake does not remove a reported peer. The public-IP total groups shared addresses without merging their identities.
 2. Use **Peer explorer** to search an address, public key, advertised name, or version. Combine the version, observation, node-role, and P2P-result filters.
 3. Select **Seed nodes**, **go-zenon seeds**, or **RPC seeds** to inspect bootstrap infrastructure. A peer merely reported by a seed is not itself a seed.
 4. Open a peer for the advertised name, source reports, exact checked endpoint, connection result, and observation times.
@@ -16,6 +16,16 @@ Zenon Observatory is a community-built dashboard for **observed Zenon network pe
 **Version adoption uses peers with known versions as its denominator**, excluding unknown versions and discovery-only candidates. The constellation and version distribution show reported peers, including unparseable software versions. If a peer advertises a newer version than the configured GitHub release feed, the card says **Highest observed version** and displays that version; it does not certify a release. When release metadata is present, the release published on GitHub and its lookup time are shown separately. With no release metadata, the card says **Highest observed version** and omits the published record and lookup time. With metadata and no newer observed version, it says **Published release adoption**. Release metadata comes from [zenon-network/go-zenon-releases](https://github.com/zenon-network/go-zenon-releases/releases), which publishes the v0.0.10 binaries. Distribution percentages include reported peers with unknown versions, so they can differ from the adoption percentage.
 
 The dashboard refreshes the discovery API about once a minute while the tab is visible. Connection settings can point a visitor's browser at another compatible API. Clearing that setting switches to the saved snapshot plus browser RPC observations, so always check the displayed data source before interpreting a screenshot.
+
+## Peer version scope after the spork
+
+The peer dashboard hides advertised versions **below v0.0.9**. The cutoff is inclusive: v0.0.9 and newer remain visible. Semver prereleases below the cutoff are excluded; build metadata does not change the comparison. This is a version-based display policy, not verified chain membership. The v0.0.10 [release notes](https://github.com/zenon-network/go-zenon-releases/releases/tag/v0.0.10) require v0.0.10 for the spork renewal; keeping v0.0.9 visible does not mark it as compatible.
+
+The policy applies before computing peer/IP/seed counts, version distribution, adoption, constellation nodes and seed markers, explorer filters, search, pagination, and both CSV exports. **All in scope** includes all evidence types within that version scope; it does not restore older-version peers. The scope notice states how many older-version records are hidden. Current advertised versions drive the filter; a retained conflicting or historical older report does not hide a peer now reporting a newer version.
+
+Unknown versions remain visible as unknown or discovery-only candidates, with no claim about their chain. The same cutoff applies to live discovery data, browser observations, and the saved fallback snapshot. If every peer is below the cutoff, the explorer explains the empty result.
+
+The discovery API and crawl queue still contain the complete collector dataset. Historical Observer evidence and momentum records retain their original versions, timestamps, and coverage; filtering those records would change the meaning of the stored comparisons. A displayed relay or configured pillar version alone does not establish which fork it follows.
 
 ## Upcoming momentums and pillar versions
 
@@ -78,7 +88,7 @@ Direct proof belongs to its recorded **IP and port**. If either changes, an olde
 
 - **API observed identities:** `nodes.length`, deduplicated by the 128-character peer public key, including discovery-only referrals.
 - **Reported peers (overview and default explorer):** API identities with `evidence` equal to `p2p`, `rpc`, or `peer`. These remain reported even when software cannot be parsed or a later handshake fails.
-- **Discovery-only candidates:** API identities with `evidence: "discovery"`, accessible via the evidence filter or **View discovery candidates**. They are excluded from overview peer counts and charts; no IP range is blacklisted. **All observations** includes both groups.
+- **Discovery-only candidates:** API identities with `evidence: "discovery"`, accessible via the evidence filter or **View discovery candidates**. They are excluded from overview peer counts and charts; no IP range is blacklisted. **All in scope** includes both groups after applying the minimum-version cutoff.
 - **Overview public IPs:** distinct public addresses associated with reported peers. The explorer’s IP export instead follows its active filters. Several identities can share an address. Hostnames are not IP addresses.
 - **P2P-confirmed peers:** nodes whose latest matching-endpoint handshake succeeded; check its time. A historical success followed by a failed attempt is not a current successful result.
 - **Registered pillars:** `pillarCount`, an on-chain registration count from `embedded.pillar.getAll`. This is not the denominator for peer coverage, and a peer identity alone does not identify a pillar operator.

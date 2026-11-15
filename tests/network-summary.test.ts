@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { isDiscoveryOnly, versionSummary } from '../src/network-summary.ts';
+import { isDiscoveryOnly, versionSummary, scopePeersByVersion, MIN_PEER_VERSION } from '../src/network-summary.ts';
 import type { NodeRecord, Release } from '../src/network.ts';
 const node = (version: string | null, evidence: NodeRecord['evidence'] = 'peer'): NodeRecord => ({
   id: 'a'.repeat(128), ip: '8.8.8.8', name: 'custom node', version, evidence,
@@ -33,4 +33,21 @@ test('published release, no release, and empty observations have distinct truthf
   assert.equal(versionSummary([], null).percent, null);
   assert.equal(versionSummary([node('v0.0.10-rc.2')], { ...release, version: 'v0.0.10' }).target, 'v0.0.10');
   assert.equal(versionSummary([node('v0.0.10+abc')], { ...release, version: 'v0.0.10' }).count, 1);
+});
+
+test('post-spork peer scope hides older software across evidence types and preserves unknowns', () => {
+  const inputs = [node('v0.0.8', 'p2p'), node('v0.0.8-libznn', 'rpc'), node('v0.0.1'), node('v0.0.9-rc.1'),
+    node('v0.0.9'), node('v0.0.9+build.1'), node('v0.0.10'), node('v0.1.0'), node('v1.0.0'), node(null, 'p2p'), node(null, 'discovery')];
+  const scope = scopePeersByVersion(inputs);
+  assert.equal(MIN_PEER_VERSION, 'v0.0.9');
+  assert.deepEqual(scope.hidden.map(n => n.version), ['v0.0.8', 'v0.0.8-libznn', 'v0.0.1', 'v0.0.9-rc.1']);
+  assert.deepEqual(scope.visible.map(n => n.version), ['v0.0.9', 'v0.0.9+build.1', 'v0.0.10', 'v0.1.0', 'v1.0.0', null, null]);
+  assert.equal(inputs.length, 11); assert.equal(inputs[0].version, 'v0.0.8');
+  assert.equal(versionSummary(scope.visible, { ...release, version: 'v0.0.10' }).denominator, 5);
+});
+test('the version scope follows the current advertised version and handles no retained peers', () => {
+  const upgraded = { ...node('v0.0.10'), reportedVersions: ['v0.0.8', 'v0.0.10'] };
+  assert.deepEqual(scopePeersByVersion([upgraded]).visible, [upgraded]);
+  assert.deepEqual(scopePeersByVersion([node('v0.0.8')]).visible, []);
+  assert.deepEqual(scopePeersByVersion([]), { visible: [], hidden: [] });
 });

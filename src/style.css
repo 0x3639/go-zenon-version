@@ -19,3 +19,6 @@
 
 .discovery-summary{display:flex;align-items:center;gap:18px;justify-content:space-between;font-size:11px;line-height:1.7;color:#a0b297;margin:18px 0 12px;padding:15px 18px;border:1px solid var(--line);border-radius:8px;background:#152019}.discovery-summary b{color:#d0dfc3;font-weight:500}.discovery-summary button{flex-shrink:0}.release-source{font-size:10px;line-height:1.8;color:#a0b297;margin:0 0 20px;overflow-wrap:anywhere}.release-source a{color:var(--lime);text-decoration:underline}
 @media(max-width:780px){.discovery-summary{align-items:flex-start;flex-direction:column;gap:10px}.discovery-summary button{max-width:100%;white-space:normal}.release-source{font-size:10px}}
+
+.version-scope{margin:18px 0;padding:14px 18px;border:1px solid #526b3c;border-radius:8px;background:#a9d47208;color:#b6caa9;font-size:11px;line-height:1.7}.version-scope b{font-weight:500;color:#d0e9b8}.version-scope p{margin:5px 0 0;color:#99af8e}
+@media(max-width:780px){.version-scope{padding:12px 14px}}
