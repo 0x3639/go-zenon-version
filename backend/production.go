@@ -550,6 +550,20 @@ func (p *productionStore) serveHistory(w http.ResponseWriter, r *http.Request) {
 		}{1, tip, hash, rows, next})
 	}
 }
+
+// Initial timestamp lookup needs about 24 sequential probes at current mainnet
+// height. Allow that bounded search to finish on slower sources; seedRPC still
+// bounds each individual call. Once a checkpoint exists, use the shorter budget.
+func (p *productionStore) syncAttempt(ctx context.Context, source string, at time.Time) error {
+	budget := 45 * time.Second
+	if p.state.Last == nil {
+		budget = 5 * time.Minute
+	}
+	attempt, cancel := context.WithTimeout(ctx, budget)
+	defer cancel()
+	return p.syncSource(attempt, source, at)
+}
+
 func (p *productionStore) run(ctx context.Context, seeds []string) {
 	preferred := 0
 	for i, seed := range seeds {
@@ -561,9 +575,7 @@ func (p *productionStore) run(ctx context.Context, seeds []string) {
 		var lastErr error
 		for i := 0; i < len(seeds); i++ {
 			index := (preferred + i) % len(seeds)
-			attempt, cancel := context.WithTimeout(ctx, 45*time.Second)
-			lastErr = p.syncSource(attempt, seeds[index], time.Now())
-			cancel()
+			lastErr = p.syncAttempt(ctx, seeds[index], time.Now())
 			if lastErr == nil {
 				preferred = index
 				break

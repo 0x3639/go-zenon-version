@@ -29,6 +29,8 @@ test('pillar list, one-hour flags, actual intervals and removed Observer on desk
   await expect(panel.locator('tbody tr')).toHaveCount(3);
   await expect(panel.locator('tbody tr').filter({ hasText: 'Quiet' })).toContainText('Possibly forked out');
   await expect(panel).toContainText('9:49 AM CST');
+  await expect(panel).toContainText('since reporting cutoff');
+  await expect(panel).toContainText('not an independently verified fork height');
   await expect(page.locator('#observer')).toHaveCount(0); await expect(page.getByRole('button', { name: 'View relay evidence' })).toHaveCount(0);
   await expect(page.getByText(/differ from this reconstruction/)).toHaveCount(0);
   await expect(page.locator('.slot-inspector')).toContainText('Version unknown');
@@ -68,4 +70,33 @@ test('paging pins the tip while new snapshots arrive', async ({ page }) => {
   const query = new URL(state.calls.find(c => c.includes('beforeHeight'))!); expect(query.searchParams.get('tipHeight')).toBe('103'); expect(query.searchParams.get('tipHash')).toBe(fixture.last.hash);
   state.data = structuredClone(fixture); await page.clock.fastForward(30000); await expect(panel.locator('tbody tr').first()).toContainText('#102');
   await panel.getByRole('button', { name: 'Return to latest' }).click(); await expect(panel.locator('tbody tr').first()).toContainText('#103');
+});
+
+test('pillars that produced earlier stay out of the fork-warning filter', async ({ page }, info) => {
+  const state = await setup(page);
+  // Two real-world cases: one production near the cutoff, and a recent producer.
+  // A long timestamp gap leaves Beta quiet while Alpha just produced.
+  state.data.pillars[1].name = 'Previously produced';
+  state.data.pillars[1].lastTimestamp = Date.parse(state.data.since) / 1000 + 20;
+  state.data.recent[1].timestamp = state.data.pillars[1].lastTimestamp;
+  state.data.recent[2].timestamp = state.data.recent[1].timestamp - 20;
+  const gap = state.data.frontier.timestamp - state.data.pillars[1].lastTimestamp;
+  state.data.recent[0].intervalSeconds = gap;
+  state.data.intervals.latestSeconds = gap;
+  state.data.intervals.longestSeconds = gap;
+  state.data.intervals.averageSeconds = (gap + 20 + 10) / 3;
+  await page.goto('/#pillars'); const panel = page.locator('#pillars');
+  const prior = panel.locator('tbody tr').filter({ hasText: 'Previously produced' });
+  await expect(prior.locator('.production-count')).toHaveText('1');
+  await expect(prior.locator('.production-activity')).toHaveText('No production in 1h');
+  await expect(panel.locator('tbody tr').filter({ hasText: 'Quiet' }).locator('.production-activity')).toHaveText('Possibly forked out');
+  await expect(panel.locator('tbody tr').filter({ hasText: 'Alpha' }).locator('.production-activity')).toHaveText('Produced within 1h');
+  await page.getByLabel('Filter pillar production').selectOption('flagged');
+  await expect(panel.locator('tbody tr')).toHaveCount(1);
+  await expect(panel.locator('tbody tr')).toContainText('Quiet');
+  await expect(panel.locator('tbody')).not.toContainText('Previously produced');
+  await page.getByLabel('Filter pillar production').selectOption('all');
+  await panel.screenshot({ path: `.qa/production-activity-${info.project.name}.png` });
+  state.data.status = 'stale'; await page.clock.fastForward(30000);
+  await expect(prior.locator('.production-activity')).toHaveText('Not assessed');
 });

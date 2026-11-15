@@ -42,12 +42,15 @@ export function productionFresh(s: ProductionSnapshot, now: number): boolean {
   return s.status === 'ready' && s.complete && !!s.frontier && now - Date.parse(s.generatedAt) / 1000 >= -20 && now - Date.parse(s.generatedAt) / 1000 <= 90 && now - s.frontier.timestamp >= -20 && now - s.frontier.timestamp <= 90;
 }
 export const INACTIVITY_SECONDS = 3600;
-export function pillarActivity(p: ProductionPillar, s: ProductionSnapshot, now: number): 'possible-fork' | 'recent' | 'waiting' {
+export function pillarActivity(p: ProductionPillar, s: ProductionSnapshot, now: number): 'possible-fork' | 'recent' | 'quiet' | 'waiting' {
   if (!productionFresh(s, now)) return 'waiting';
-  // Use the checked chain boundary, not the browser clock or unconfirmed slots.
-  const silentSince = p.lastTimestamp ?? Date.parse(s.since) / 1000;
-  if (s.frontier!.timestamp - silentSince >= INACTIVITY_SECONDS) return 'possible-fork';
-  return p.count ? 'recent' : 'waiting';
+  // Production anywhere in the checked window rules out this fork-warning label.
+  // A later gap describes inactivity only, measured through the checked tip.
+  if (p.count > 0) {
+    if (p.lastTimestamp === null) return 'waiting';
+    return s.frontier!.timestamp - p.lastTimestamp >= INACTIVITY_SECONDS ? 'quiet' : 'recent';
+  }
+  return s.frontier!.timestamp - Date.parse(s.since) / 1000 >= INACTIVITY_SECONDS ? 'possible-fork' : 'waiting';
 }
 export async function fetchProductionJSON(url: string, signal: AbortSignal): Promise<unknown> {
   const response = await fetch(url, { credentials: 'omit', signal: AbortSignal.any([signal, AbortSignal.timeout(12000)]), cache: 'no-store' });

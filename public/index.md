@@ -4,7 +4,7 @@ Explore observed Zenon peers, compare go-zenon node versions, identify seed node
 
 [Open the live dashboard](https://0x3639.com/go-zenon-version/)
 
-Explore distinct peer public keys, observed public IPs, version distribution, seed labels, and direct P2P results. Search and combine filters, open peer details for timestamps and sources, and export peer or unique-IP CSV files. View actual pillar production since the fork and every saved momentum interval against the expected 10-second cadence.
+Explore distinct peer public keys, observed public IPs, version distribution, seed labels, and direct P2P results. Search and combine filters, open peer details for timestamps and sources, and export peer or unique-IP CSV files. View actual pillar production since the configured reporting cutoff and every saved momentum interval against the expected 10-second cadence.
 
 This is a partial network view. Versions are self-reported. A failed inbound handshake may reflect NAT or a firewall, not an offline node. Registered pillars and peer identities are different counts.
 
