@@ -68,3 +68,9 @@ The list uses [ZenonHub's pillar list](https://zenonhub.io/pillars) as a layout 
 5. Reload [Pillars](https://0x3639.com/go-zenon-version/#pillars). The independent `go-zenon-pillar-version` app can remain stopped.
 
 To roll back, deploy the prior discovery commit and revert the frontend change. The old backend ignores `production.sqlite`; preserve the volume for a future redeploy. A frontend-only rollback would restore the old Observer UI, which will be unavailable while its app is stopped. Peer filtering from PR #3 is not changed by this update.
+
+## Post-merge review follow-up
+
+PR #4's review identified a startup deadline shorter than a slow-but-healthy timestamp search. The initial source attempt now has a bounded five-minute allowance until the first production checkpoint; subsequent attempts retain the 45-second limit. Each RPC retains its existing timeout and shutdown cancellation still takes precedence. A deterministic regression at height 14.7 million accounts for two seconds per RPC without wall-clock sleeps: the old deadline fails before any records commit, while the initial allowance completes the search and count. Normal polling and parent cancellation are also checked.
+
+The panel and machine-readable entry points now say **reporting cutoff** and clarify that it is not an independently verified fork height. The configured date, counts, and one-hour inactivity rule are unchanged. Screenshots above record the original PR #4 labels. Follow-up validation passed 31 frontend tests, eight production browser tests across desktop/mobile, the site build, and all Go race tests/build in containers.

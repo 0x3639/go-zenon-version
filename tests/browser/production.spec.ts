@@ -29,6 +29,8 @@ test('pillar list, one-hour flags, actual intervals and removed Observer on desk
   await expect(panel.locator('tbody tr')).toHaveCount(3);
   await expect(panel.locator('tbody tr').filter({ hasText: 'Quiet' })).toContainText('Possibly forked out');
   await expect(panel).toContainText('9:49 AM CST');
+  await expect(panel).toContainText('since reporting cutoff');
+  await expect(panel).toContainText('not an independently verified fork height');
   await expect(page.locator('#observer')).toHaveCount(0); await expect(page.getByRole('button', { name: 'View relay evidence' })).toHaveCount(0);
   await expect(page.getByText(/differ from this reconstruction/)).toHaveCount(0);
   await expect(page.locator('.slot-inspector')).toContainText('Version unknown');

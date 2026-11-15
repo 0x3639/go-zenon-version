@@ -281,3 +281,82 @@ func TestProductionStaleSourceAndFutureBoundary(t *testing.T) {
 		t.Fatal("failed to begin at future cutoff")
 	}
 }
+
+func TestProductionInitialSearchAllowsSlowHealthyRPC(t *testing.T) {
+	f := newProductionFixture(t)
+	p, _ := productionTestStore(t, f)
+	const tip uint64 = 14700000
+	end := p.since.Unix() + 20
+	header := func(height uint64) momentumHeader {
+		return momentumHeader{Height: height, Hash: fmt.Sprintf("%064x", height), PreviousHash: fmt.Sprintf("%064x", height-1), Timestamp: end - int64(tip-height)*10, Producer: f.registry[0].Producer, ChainIdentifier: 1}
+	}
+	// Account for two seconds per successful RPC without making this regression
+	// test sleep for a minute. Honor the caller's real budget with a logical clock.
+	started, elapsed, calls := time.Now(), time.Duration(0), 0
+	p.rpc = func(ctx context.Context, _ string, method string, target any, args ...any) error {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+		deadline, ok := ctx.Deadline()
+		if !ok {
+			t.Fatal("source attempt must have a deadline")
+		}
+		elapsed += 2 * time.Second
+		calls++
+		if started.Add(elapsed).After(deadline) {
+			return context.DeadlineExceeded
+		}
+		var result any
+		switch method {
+		case "ledger.getFrontierMomentum":
+			result = header(tip)
+		case "embedded.pillar.getAll":
+			result = map[string]any{"count": len(f.registry), "list": f.registry}
+		case "ledger.getMomentumsByHeight":
+			start := args[0].(uint64)
+			count := uint64(1)
+			if n, ok := args[1].(uint64); ok {
+				count = n
+			}
+			rows := []momentumHeader{}
+			for h := start; h < start+count; h++ {
+				rows = append(rows, header(h))
+			}
+			result = map[string]any{"list": rows}
+		default:
+			return errors.New("unexpected RPC")
+		}
+		raw, err := json.Marshal(result)
+		if err != nil {
+			return err
+		}
+		return json.Unmarshal(raw, target)
+	}
+	at := time.Unix(end+1, 0)
+	short, cancel := context.WithTimeout(context.Background(), 45*time.Second)
+	err := p.syncSource(short, "slow", at)
+	cancel()
+	if !errors.Is(err, context.DeadlineExceeded) || p.snapshot.TotalMomentums != 0 {
+		t.Fatal("fixture must reproduce the original initialization failure")
+	}
+	started, elapsed, calls = time.Now(), 0, 0
+	if err = p.syncAttempt(context.Background(), "slow", at); err != nil {
+		t.Fatal(err)
+	}
+	if calls < 25 || elapsed <= 45*time.Second || !p.snapshot.Complete || p.snapshot.TotalMomentums != 3 {
+		t.Fatalf("slow search failed: calls=%d elapsed=%s snapshot=%+v", calls, elapsed, p.snapshot)
+	}
+	// Subsequent polling remains bounded at 45s, and parent cancellation wins.
+	p.rpc = func(ctx context.Context, _ string, _ string, _ any, _ ...any) error {
+		deadline, ok := ctx.Deadline()
+		if !ok || time.Until(deadline) > 45*time.Second {
+			t.Fatal("normal polling got an initialization budget")
+		}
+		return ctx.Err()
+	}
+	stopped, stop := context.WithCancel(context.Background())
+	stop()
+	if err = p.syncAttempt(stopped, "slow", at); !errors.Is(err, context.Canceled) {
+		t.Fatalf("cancellation lost: %v", err)
+	}
+}
