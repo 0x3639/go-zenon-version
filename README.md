@@ -15,7 +15,7 @@ flowchart LR
   API --> UI[GitHub Pages dashboard]
 ```
 
-- `backend/`: Go service, Dockerfile, and Compose deployment. No blockchain database, wallet, votes, or transaction broadcasts. Uses go-zenon's legacy RLPx implementation for compatibility, with its own bounded discovery-v4 client.
+- `backend/`: Go service, Dockerfile, and Compose deployment. Stores a compact RPC header/interval history, with no full-node database, wallet, votes, or transaction broadcasts. Uses go-zenon's legacy RLPx implementation for compatibility, with its own bounded discovery-v4 client.
 - `src/`: React + TypeScript dashboard with a peer constellation, version distribution, search, filters, details, CSV export, and connection settings.
 - `public/data/network.json`: real, timestamped bootstrap snapshot. It is **not demo data** and can become stale. Without an API configured, live seed results supplement this snapshot. Older nodes retain their individual observation times.
 - `scripts/collect.ts`: optional RPC-only snapshot collector; useful for refreshing the bundled fallback. It does not implement P2P discovery.
@@ -40,13 +40,14 @@ Alternatively, from `backend/`, deploy `compose.yaml` as a Coolify Compose appli
 | Variable | Default | Meaning |
 | --- | --- | --- |
 | `PORT` | `8080` | API listen port |
-| `DATA_DIR` | `/data` | Private discovery identity, cached snapshot, and durable crawl queue |
+| `DATA_DIR` | `/data` | Private discovery identity, cached snapshot, durable crawl queue, and production SQLite history |
 | `ALLOWED_ORIGINS` | `https://0x3639.com,https://0x3639.github.io` | Comma-separated browser origins; no wildcard |
 | `SEED_URLS` | The three seeds below | Comma-separated WSS/HTTPS RPC endpoints, maximum 8 |
 | `SCAN_INTERVAL` | `10m` | Pause after the entire known queue is drained; unfinished batches resume after 5 seconds |
 | `SCAN_BUDGET` | `3m` | Maximum duration of one batch (10s–10m); remaining work stays queued |
 | `MAX_NODES` | `256` | Maximum endpoint attempts per batch (1–1000), not a cap on total coverage |
 | `CONCURRENCY` | `4` | Simultaneous peer probes (1–8) |
+| `PRODUCTION_SINCE` | `2026-11-15T15:49:00Z` | Inclusive production-reporting boundary; changing it rebuilds stored counts |
 | `PILLAR_PEERS_JSON` | Empty | Optional JSON object mapping pillar producing addresses to complete 128-character P2P public keys; never infer links from IPs |
 
 Default seeds:
@@ -63,7 +64,7 @@ The peer explorer labels **go-zenon seeds** by public-key membership in the vali
 
 Following the spork, the peer dashboard excludes advertised versions below **v0.0.9**, using the explicit `MIN_PEER_VERSION` policy in `src/network-summary.ts`. The cutoff is inclusive and independent of the latest release lookup. It filters counts, charts, map seed markers, the explorer, and exports consistently, including fallback data. Unknown versions remain unclassified. Older versions are not deleted from the collector. The scope notice reports the hidden count; it never labels retained peers as belonging to a verified chain.
 
-This cutoff follows the requested threshold. The [v0.0.10 release notes](https://github.com/zenon-network/go-zenon-releases/releases/tag/v0.0.10) require v0.0.10 for the spork renewal, so a visible v0.0.9 peer is not a compatibility endorsement. Observer history and momentum records retain their recorded versions and dates. Crawl diagnostics describe the full collector workload. This is a frontend change: merge to publish GitHub Pages; no Coolify redeploy is needed for the version scope.
+This cutoff follows the requested threshold. The [v0.0.10 release notes](https://github.com/zenon-network/go-zenon-releases/releases/tag/v0.0.10) require v0.0.10 for the spork renewal, so a visible v0.0.9 peer is not a compatibility endorsement. Momentum records retain their recorded timestamps and producing addresses. Crawl diagnostics describe the full collector workload. This is a frontend change: merge to publish GitHub Pages; no Coolify redeploy is needed for the version scope.
 
 ### Peer totals and release labels
 
@@ -80,6 +81,8 @@ The discovery service and optional snapshot collector read releases from [zenon-
 | `GET /api/v1/network` | Full snapshot: nodes, source successes/failures, scan state, release metadata |
 | `GET /api/v1/nodes` | `{ generatedAt, nodes }` |
 | `GET /api/v1/ips` | `{ generatedAt, ips }`: one record per observed public IP, with all node identities and direct-connection counts |
+| `GET /api/v1/production` | Persistent per-pillar counts, coverage, interval statistics, and latest 25 headers |
+| `GET /api/v1/production/momentums` | Bounded older history: required `tipHeight`, `tipHash`, exclusive `beforeHeight`, and `limit` (1–100) |
 | `GET /api/v1/momentums` | Upcoming production projections, recent outcomes, replay checks, and explicitly linked pillar versions |
 | `GET /healthz` | Process health, scan state, observation count, last update |
 | `GET /readyz` | 200 once observations exist, otherwise 503 |
@@ -111,61 +114,41 @@ GitHub Pages currently inherits the account’s custom domain: `https://0x3639.c
 
 The workflow builds with Node inside a job container. No server-side component runs on GitHub Pages, and no API credential is embedded in the frontend.
 
-### Experimental Observer panel
+### Pillar production and momentum timing
 
-The separate P2P Observer has an optional frontend panel. It is **off by default** and must remain off until its collection pilot passes and the operator enables it. Healthy responses never enable it automatically. The existing discovery service and Momentum watch do not depend on the Observer.
+The **Pillars** section replaces the independent Observer and correlation analysis. There are no Observer requests, navigation links, relay-evidence controls, or Observer build flags. The `go-zenon-pillar-version` Coolify app can remain stopped. Existing `OBSERVER_ENABLED` / `OBSERVER_API_URL` repository variables have no effect and may be deleted.
 
-| Setting | Default | Purpose |
-| --- | --- | --- |
-| `OBSERVER_ENABLED` GitHub Actions repository variable | Unset / off | Only the exact string `true` enables the panel in the next Pages build |
-| `OBSERVER_API_URL` GitHub Actions repository variable | Supplied Coolify Observer origin | Optional HTTPS origin override, without a path, query, credentials, or fragment |
-| `VITE_OBSERVER_ENABLED` | Off | Equivalent flag for direct Vite builds |
-| `VITE_OBSERVER_API_URL` | `https://zsjo46q7s0qcmaklbmak7gfp.172.245.238.165.sslip.io` | Independent Observer API origin |
+Counts start at **November 15, 2026, 9:49 AM CST**, inclusively (`2026-11-15T15:49:00Z`). Set `PRODUCTION_SINCE` to a whole-second RFC3339 timestamp to change that boundary; changing it rebuilds production history. This is a timestamp-based reporting boundary, not an independent determination of the fork activation height.
 
-After pilot acceptance, set `OBSERVER_ENABLED=true` and run **Publish dashboard**. Disable it by removing the variable or setting it to `false`, then rebuild. No Coolify change or discovery backend redeploy is needed for this frontend feature. There is no query-string or browser-settings bypass. Disabled builds render neither the panel nor its navigation link and make no Observer requests; the panel is lazy loaded and has its own render error boundary.
+The list shows current pillar names, full producing addresses, actual momentums produced, production share, latest production time/height, and activity. Current registered pillars with zero production are included, along with producing addresses no longer in the registry. Names come from the current registry; counts stay keyed by the full producing address across name changes. Search by name/address, filter, sort, and paginate. Shares are of checked production, not uptime or stake. The existing peer dashboard still hides advertised versions below v0.0.9; this display filter does not filter chain records.
 
-When enabled, **Observer · Experimental** appears below the peer explorer, with **Relay associations**, **Checked momentums**, and **Peer sessions** views. In Momentum watch, the selected pillar gets an **Observed relay versions** section and a **View relay evidence** action. Opening it pins that slot and requests comparisons filtered by the **full producing address**; the 30-slot tape does not create 30 Observer requests. Changing the producing address closes the evidence and cancels its requests. Expanding an Observer momentum also shows producer-filtered relay comparisons alongside arrival evidence and dated names.
+**Possibly forked out** means no momentum for at least **1 hour** between a pillar's last production (or the reporting start for a zero-count pillar) and the checked chain tip. It appears only with complete history, a fresh tip, and no current request error. It is an inactivity flag, not proof of another chain or ownership. Downtime, missed slots, low election frequency, or a new registration can also explain the result. Historical registration dates are not indexed. Stale/partial history shows **Not assessed**, and zero partial counts mean **Not found yet**.
 
-Every comparison row shows the relay's **Relay advertised version**, full peer ID, historical IP, version observation time, comparable sample count, UTC-day count, and first/last observation times. It also shows delivery coverage, strict first-arrival share and ties, median/p95 relative delay, matched other-producer baseline and excess share, and the chronological holdout result. Expand a row for cohort/boot/session IDs, baseline denominators, earlier/later halves, and daily evidence. Different cohorts and event categories remain separate rows. Missing deliveries count in the comparable denominator but supply no delay value.
+**Momentum timing** stores each completed interval as the difference between consecutive chain-header timestamps. Expected cadence is 10 seconds; longer gaps are amber and show the excess. Latest, average, and longest intervals cover all checked history since the boundary. The first included momentum uses its predecessor, so its interval may begin before the reporting window. This is not CPU creation time or network propagation time. New polling cannot shift older pages: each request pins `tipHeight` / `tipHash` and moves an exclusive `beforeHeight` cursor. A changed chain returns 409 and asks the user to return to latest.
 
-`observed_relay_association` is presented as **Sample/day threshold met**: at least 100 comparable samples across three UTC days, including negative findings. It is not statistical confidence, ownership proof, or a producer-version finding. `insufficient_data` rows show remaining samples and UTC days in the same cohort/category. A page-only threshold count, reconnect/upgrade explanation, and empty-holdout-half message make collection progress distinct from a usable association result. Holdouts are descriptive heuristics; the UI explains their sample/baseline requirements and five-percentage-point margin. A single observer's routing bias remains.
+A single independent worker reads configured public RPC seeds, at most five pages of 100 headers per pass, with a 45-second source deadline. Catch-up pauses five seconds between passes; caught-up/error passes pause 30 seconds. RPC requests retain their existing per-call timeouts/response limits. It finds the timestamp boundary by binary search, checks mainnet header structure, producing addresses, sequential heights/hash links and timestamps, and rechecks the pinned tip. This checks a public node's reported chain, not full consensus or signatures. A fallback that disagrees with the saved checkpoint is rejected. Changed history at the saved source triggers a rebuild; a lagging source preserves prior data as unavailable.
 
-The frontend accepts the exact pairs **schema 1.1 / method association-2** and **schema 1.0 / method collection-1**, rejecting other combinations. Current arrival `rankingEligible: null` means eligibility is determined by the complete comparison window; legacy `false` remains collection-only. Null pillar association bounds mean **no complete hours**, with no fabricated dates. Legacy collectors still show analysis pending.
+`/data/production.sqlite` (plus SQLite WAL files) stores every included header/interval, incremental per-producer aggregates, registry labels, and a transactional checkpoint. The same transaction updates records and counts, preventing duplicate totals after retries/restarts. Restarted history is stale until rechecked. Preserve the `/data` volume; history grows with produced momentums, and losing it requires a bounded rebuild. Database initialization failure is logged and leaves the existing peer/schedule services running. Production responses retain their original generated time on errors. Browser requests time out after 12 seconds, cap response bytes, skip hidden-page refreshes, and back off to 120 seconds on request errors.
 
-A one-row availability request obtains the server's default window (seven complete UTC days for the current method), then the displayed association page uses fixed `from`/`to` dates. Availability requests for a selected pillar are also producer-filtered. Paging and polling retain those dates. **Update window** starts a fresh interval and resets paging; a notice offers newer complete hours without silently changing dates during polling. New hours may still await analysis. Rows are not a ranking or a network-wide verdict; users can choose 24 hours, 7 days, or 30 days, filter unsolicited event categories, and use 5/10/25 rows per page. Only the active page is retained/displayed, with **Partial results** when additional/previous pages exist. Duplicate row identities within a page are removed without pooling cohorts. Offset paging is not a snapshot; late evidence can move/repeat rows across pages. Producer filters do not change the stored baseline.
+Pillar software stays **Unknown** unless the existing configured producing-address-to-peer-key link provides a fresh advertisement. Neither production counts nor inactivity create such a link. `PILLAR_PEERS_JSON` is unchanged. The schedule remains a projection; the reconstruction-mismatch warning was removed, while stale-feed warnings and the general projection explanation remain.
 
-Collection routes and the active association page refresh independently about every 30 seconds while visible. Requests time out after ten seconds, reject bodies above 1 MiB, and back off after failures (up to two minutes, or five minutes for `Retry-After`). Collapsed pillar details make no requests; closing details cancels their polling. Changing pages/filters cancels the previous request and does not display a different producer's old evidence. Failed routes retain their last successful observations and original timestamps; previous-page navigation remains usable after a failed next-page request. Reduce rows/window after query/response limits.
+#### Deploy this update
 
-Every feed exposes `generatedAt`, query bounds, and expandable `dataQuality`. Snapshots are stale after 90 seconds (also checking operational status); reference freshness has a separate two-minute threshold. `computedAt` describes summary computation, not response generation. Summaries being available does not imply any row meets its threshold. Processed, pending, retrying, missing and excluded hours remain visible; retrying is a subset of pending. Whole-hour exclusions are separate from the legacy combined comparison exclusion map. Missing hours and absent rows do not establish offline peers or pillars. Raw history can lag by 30 seconds; association hours have a two-minute reconciliation grace. Raw evidence expiry is labeled.
+1. Merge the PR and redeploy **go-zenon-version discovery** in Coolify from `main`. Keep port 8080, its current HTTPS domain, and writable persistent storage at `/data`. The default start time is built in; optionally set runtime `PRODUCTION_SINCE=2026-11-15T15:49:00Z` explicitly.
+2. Verify `GET /api/v1/production`: first `backfilling`, then `ready` with `complete: true`, recent `generatedAt`, and the intended `since`. During an upstream outage, saved data is explicitly unavailable/stale. No data is fabricated to make the panel appear healthy.
+3. The merge triggers **Publish dashboard** on GitHub Pages. Keep `DISCOVERY_API_URL` pointing to the existing discovery origin; no new API origin is needed. If required, run **Publish dashboard** manually on `main`. An older backend's 404 affects only the new section until Coolify is redeployed.
+4. Open [Pillars](https://0x3639.com/go-zenon-version/#pillars), check the start date and coverage, then select **Momentum timing**. The independent Observer app can remain stopped.
 
-**The existing pillar software-version field stays Unknown** unless its existing configured identity link supplies an observed version. All Observer `producerSoftwareVersion` values must remain null. Relays' `advertisedVersion` values never fill that field. Arrival order, a strong association, IPs, and dated names never create pillar-to-peer mappings, and this frontend never writes `PILLAR_PEERS_JSON`. The backend and its configuration are unchanged.
-
-Contract references: [API documentation](https://github.com/0x3639/go-zenon-pillar-version/blob/eec750f3bc31cb8f2bd523fc7066ae49435b640b/docs/api.md), [analysis interpretation](https://github.com/0x3639/go-zenon-pillar-version/blob/eec750f3bc31cb8f2bd523fc7066ae49435b640b/docs/association-analysis.md), [Observer OpenAPI](https://github.com/0x3639/go-zenon-pillar-version/blob/eec750f3bc31cb8f2bd523fc7066ae49435b640b/docs/openapi.json). The Observatory's own `openapi.json` still describes the discovery service; the Observer remains independent.
-
-#### Frontend validation and Pages deployment
-
-All dependency execution stays in containers:
+Validation runs entirely in containers:
 
 ```sh
-nodebox npm ci
 nodebox npm test
-nodebox env VITE_OBSERVER_ENABLED=true npm run build
-nodebox env VITE_OBSERVER_ENABLED=false npm run build
-# Starts only a frontend preview; it does not start/redeploy a collector.
+nodebox npm run build
+docker build --target build -t zenon-production-check backend
 docker compose -f tests/browser/compose.yaml up -d web
 docker compose -f tests/browser/compose.yaml run --rm browser
-# Repeat against a disabled build/dev server:
-OBSERVER_PREVIEW_ENABLED=false docker compose -f tests/browser/compose.yaml up -d web
-OBSERVER_PREVIEW_ENABLED=false docker compose -f tests/browser/compose.yaml run --rm browser
-# Opt-in live API/browser smoke checks (enable preview first):
-OBSERVER_PREVIEW_ENABLED=true docker compose -f tests/browser/compose.yaml up -d web
-docker compose -f tests/browser/compose.yaml run --rm -e CHECK_LIVE_OBSERVER=1 browser npm run test:browser -- --grep 'live Observer'
 docker compose -f tests/browser/compose.yaml down
 ```
-
-The preview binds only `127.0.0.1:3000`. Set `LOCAL_UID`/`LOCAL_GID` if your host user differs from the defaults. Deterministic browser tests cover desktop/mobile layouts, selected-address requests, pagination, stale/error/backoff states, legacy responses, null windows and feature-off requests. Fixtures are public 0.3.1 responses recorded November 12, 2026; they are test evidence, not live dashboard data. Live browser tests forward read-only API responses through Playwright because the production CORS allowlist excludes localhost. They separately verify `https://0x3639.com` CORS.
-
-Merge this frontend PR to `main` after checks/review. Leave the GitHub Actions repository variable `OBSERVER_ENABLED=true` to expose the panel; the optional `OBSERVER_API_URL` must be the Observer HTTPS origin. The merge triggers **Publish dashboard**, or run it manually from Actions on `main`. Wait for its green deployment, then reload [Observer](https://0x3639.com/go-zenon-version/#observer) and inspect a selected pillar in Momentum watch. No Coolify redeploy is required. To hide all Observer UI, set `OBSERVER_ENABLED=false` and rerun **Publish dashboard**. Do not change `PILLAR_PEERS_JSON` for this feature.
 
 ## Local development
 
