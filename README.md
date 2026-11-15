@@ -150,6 +150,20 @@ docker compose -f tests/browser/compose.yaml run --rm browser
 docker compose -f tests/browser/compose.yaml down
 ```
 
+### Testing the missed-slot hypothesis
+
+Select **Why the gaps?** inside Pillar production. The study compares later projected assignments for two groups defined by actual production during the **first hour after `PRODUCTION_SINCE`**. Groups are keyed by full producing address and stay fixed: a pillar with zero baseline production that later produces remains in that group and counts against the theory. The group is not a current inactivity or fork label.
+
+`GET /api/v1/production/gaps` returns schema 1, method `baseline-holdout-current-weights-v1`. The baseline is `[baselineStart, baselineEnd)`. The later test window `[windowStart, windowEnd)` contains at most the latest 12 completed, five-minute consensus rounds after the baseline, and waits until checked chain history reaches the round end. Window bounds are null while waiting. All timestamps other than `generatedAt` are Unix seconds.
+
+The worker reconstructs assignments using the pinned go-zenon election algorithm, current cached public RPC registry/weights, and the last chain momentum strictly before each round start minus five minutes. This is **not authoritative historical election state**. A round enters the comparison only when at least five actual producers can be checked and every one matches the reconstruction. Missing proof, any mismatch, or fewer observations excludes the entire round. `all` retains measured production/empty counts from every closed round; `comparable`, group counts, and per-pillar assignments include only accepted rounds. The UI shows excluded rounds and unattributed gaps explicitly, with proof links in the round audit.
+
+The comparison reports scheduled, produced, and empty slots, empty-slot rates, and their percentage-point difference. Its descriptive readout waits for six included rounds and at least 20 assignments per group; these thresholds are **not statistical confidence**. Matching produced slots does not independently verify assignments to empty slots. Exclusions can bias the comparison; repeated slots/pillars are not independent trials. Current weights, registry changes, new registrations, and downtime remain alternative explanations. A higher empty rate is consistent with missing production by scheduled pillars, but **does not prove which pillars are on another fork**, identify their IPs, or establish their software versions.
+
+The study reuses the existing worker and SQLite history with **no additional public RPC calls**. Each refresh reads at most 500 recent headers plus a primary-key range of at most 360 baseline records; it does not scan the growing history. Results are cached, no-store, and independently unavailable/stale on errors. The browser fetches only while the study view is mounted and visible, every 30 seconds, with the existing 12-second timeout, 2 MB bound and request-error backoff up to 120 seconds. A stale/error response keeps its original timestamp and displays a historical comparison. The study is recomputed from persistent headers after restart; no separate Observer service or new volume is required.
+
+Deployment: merge the PR, redeploy the **go-zenon-version discovery** app in Coolify from `main`, retaining `/data`, and verify `/api/v1/production/gaps`. GitHub Pages publishes from the merge, or run **Publish dashboard** on `main`. Keep `DISCOVERY_API_URL` unchanged. An older backend affects only this new study until redeployed. The independent Observer may remain stopped. See [method and validation](docs/momentum-gap-study.md).
+
 ## Local development
 
 All dependency installation and execution must stay in containers. From the repository root:

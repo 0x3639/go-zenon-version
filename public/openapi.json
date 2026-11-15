@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Zenon Observatory Discovery API",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "description": "Read-only observations, not a full network census. Version strings are self-reported; unsuccessful handshakes do not prove a peer is offline. Cache peer data and normally poll at most once per minute; momentum projections may be polled every ten seconds and production history every thirty seconds."
   },
   "servers": [
@@ -226,6 +226,27 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v1/production/gaps": {
+      "get": {
+        "operationId": "getGapStudy",
+        "summary": "Compare later projected slots for fixed first-hour production groups; not proof of a fork",
+        "responses": {
+          "200": {
+            "description": "No-store study. Windows are inclusive/exclusive Unix seconds, null while waiting. all includes excluded rounds; comparable and pillar/group counts exclude them. Current weights are not authoritative historical elections. Check timestamps and status.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GapStudy"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Production database unavailable."
           }
         }
       }
@@ -1218,6 +1239,258 @@
           "tipHash",
           "data",
           "nextBeforeHeight"
+        ]
+      },
+      "GapCounts": {
+        "type": "object",
+        "properties": {
+          "scheduled": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 360
+          },
+          "produced": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "missed": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "scheduled",
+          "produced",
+          "missed"
+        ]
+      },
+      "GapPillar": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/GapCounts"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "producer": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "baselineCount": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "group": {
+                "enum": [
+                  "no-baseline-production",
+                  "prior-production"
+                ],
+                "description": "Fixed by the first hour only. Not a current fork or inactivity label."
+              }
+            },
+            "required": [
+              "producer",
+              "name",
+              "baselineCount",
+              "group"
+            ]
+          }
+        ]
+      },
+      "GapRound": {
+        "type": "object",
+        "properties": {
+          "start": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "end": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "proofHeight": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "proofHash": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "produced": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "matched": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "missed": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "included": {
+            "type": "boolean"
+          },
+          "reason": {
+            "enum": [
+              "missing-proof",
+              "producer-mismatch",
+              "too-few-produced-slots",
+              "replay-matched"
+            ]
+          }
+        },
+        "required": [
+          "start",
+          "end",
+          "proofHeight",
+          "proofHash",
+          "produced",
+          "matched",
+          "missed",
+          "included",
+          "reason"
+        ]
+      },
+      "GapStudy": {
+        "type": "object",
+        "properties": {
+          "schemaVersion": {
+            "const": 1
+          },
+          "method": {
+            "const": "baseline-holdout-current-weights-v1"
+          },
+          "generatedAt": {
+            "type": "string",
+            "description": "Last successful study snapshot time, empty during warmup; unchanged on error."
+          },
+          "source": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "waiting",
+              "ready",
+              "stale",
+              "unavailable"
+            ]
+          },
+          "error": {
+            "type": "string"
+          },
+          "baselineStart": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "baselineEnd": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "baselineComplete": {
+            "type": "boolean"
+          },
+          "baselineMomentums": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "windowStart": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "windowEnd": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "frontier": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MomentumHeader"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "minimumReplay": {
+            "const": 5
+          },
+          "all": {
+            "$ref": "#/components/schemas/GapCounts"
+          },
+          "comparable": {
+            "$ref": "#/components/schemas/GapCounts"
+          },
+          "noBaselineProduction": {
+            "$ref": "#/components/schemas/GapCounts"
+          },
+          "priorProduction": {
+            "$ref": "#/components/schemas/GapCounts"
+          },
+          "rounds": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GapRound"
+            },
+            "maxItems": 12
+          },
+          "pillars": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GapPillar"
+            },
+            "maxItems": 360
+          }
+        },
+        "required": [
+          "schemaVersion",
+          "method",
+          "generatedAt",
+          "source",
+          "status",
+          "baselineStart",
+          "baselineEnd",
+          "baselineComplete",
+          "baselineMomentums",
+          "windowStart",
+          "windowEnd",
+          "frontier",
+          "minimumReplay",
+          "all",
+          "comparable",
+          "noBaselineProduction",
+          "priorProduction",
+          "rounds",
+          "pillars"
         ]
       },
       "Health": {

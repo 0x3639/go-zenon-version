@@ -77,6 +77,7 @@ type productionStore struct {
 	rpc      productionRPC
 	mu       sync.RWMutex
 	snapshot productionSnapshot
+	gaps     gapStudy
 }
 
 func productionSince(raw string) (time.Time, error) {
@@ -451,6 +452,7 @@ func (p *productionStore) publish(ctx context.Context, status, message string) e
 	p.mu.Lock()
 	p.snapshot = out
 	p.mu.Unlock()
+	p.updateGapStudy(ctx, out)
 	return nil
 }
 
@@ -478,6 +480,8 @@ func readProductionRows(ctx context.Context, db productionQuerier, before uint64
 func (p *productionStore) failure(err error) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
+	p.gaps.Status = "unavailable"
+	p.gaps.Error = "Production history could not refresh; study results are historical."
 	p.snapshot.Status = "unavailable"
 	p.snapshot.Error = "Chain history could not refresh. Saved counts retain their original timestamp."
 	log.Printf("production history: %v", err)

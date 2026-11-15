@@ -1,0 +1,139 @@
+{
+  "schemaVersion": 1,
+  "method": "baseline-holdout-current-weights-v1",
+  "generatedAt": "2026-11-15T17:20:01Z",
+  "source": "wss://fixture.example",
+  "status": "ready",
+  "baselineStart": 1794757740,
+  "baselineEnd": 1794761340,
+  "baselineComplete": true,
+  "baselineMomentums": 360,
+  "windowStart": 1794761400,
+  "windowEnd": 1794763200,
+  "frontier": {
+    "height": 10000,
+    "hash": "0000000000000000000000000000000000000000000000000000000000000004",
+    "previousHash": "0000000000000000000000000000000000000000000000000000000000000003",
+    "timestamp": 1794763200,
+    "producer": "z1qr9dd6qmzwr8sazns24lna8zz5e8208nqq2hcx",
+    "chainIdentifier": 1
+  },
+  "minimumReplay": 5,
+  "all": {
+    "scheduled": 180,
+    "produced": 120,
+    "missed": 60
+  },
+  "comparable": {
+    "scheduled": 180,
+    "produced": 120,
+    "missed": 60
+  },
+  "noBaselineProduction": {
+    "scheduled": 120,
+    "produced": 60,
+    "missed": 60
+  },
+  "priorProduction": {
+    "scheduled": 60,
+    "produced": 60,
+    "missed": 0
+  },
+  "rounds": [
+    {
+      "start": 1794761400,
+      "end": 1794761700,
+      "proofHeight": 100,
+      "proofHash": "0000000000000000000000000000000000000000000000000000000000000064",
+      "produced": 20,
+      "matched": 20,
+      "missed": 10,
+      "included": true,
+      "reason": "replay-matched"
+    },
+    {
+      "start": 1794761700,
+      "end": 1794762000,
+      "proofHeight": 120,
+      "proofHash": "0000000000000000000000000000000000000000000000000000000000000078",
+      "produced": 20,
+      "matched": 20,
+      "missed": 10,
+      "included": true,
+      "reason": "replay-matched"
+    },
+    {
+      "start": 1794762000,
+      "end": 1794762300,
+      "proofHeight": 140,
+      "proofHash": "000000000000000000000000000000000000000000000000000000000000008c",
+      "produced": 20,
+      "matched": 20,
+      "missed": 10,
+      "included": true,
+      "reason": "replay-matched"
+    },
+    {
+      "start": 1794762300,
+      "end": 1794762600,
+      "proofHeight": 160,
+      "proofHash": "00000000000000000000000000000000000000000000000000000000000000a0",
+      "produced": 20,
+      "matched": 20,
+      "missed": 10,
+      "included": true,
+      "reason": "replay-matched"
+    },
+    {
+      "start": 1794762600,
+      "end": 1794762900,
+      "proofHeight": 180,
+      "proofHash": "00000000000000000000000000000000000000000000000000000000000000b4",
+      "produced": 20,
+      "matched": 20,
+      "missed": 10,
+      "included": true,
+      "reason": "replay-matched"
+    },
+    {
+      "start": 1794762900,
+      "end": 1794763200,
+      "proofHeight": 200,
+      "proofHash": "00000000000000000000000000000000000000000000000000000000000000c8",
+      "produced": 20,
+      "matched": 20,
+      "missed": 10,
+      "included": true,
+      "reason": "replay-matched"
+    }
+  ],
+  "pillars": [
+    {
+      "producer": "z1qr9dd6qmzwr8sazns24lna8zz5e8208nqq2hcx",
+      "name": "Baseline producer",
+      "baselineCount": 360,
+      "group": "prior-production",
+      "scheduled": 60,
+      "produced": 60,
+      "missed": 0
+    },
+    {
+      "producer": "z1qrjdhy65zds69a96xlhheu4sy689k34x4hpse0",
+      "name": "Recovered producer",
+      "baselineCount": 0,
+      "group": "no-baseline-production",
+      "scheduled": 60,
+      "produced": 60,
+      "missed": 0
+    },
+    {
+      "producer": "z1qzdwhpqwtz5yhrp7nuk7cl6zhjp3ywn57l3l9v",
+      "name": "Silent in both windows",
+      "baselineCount": 0,
+      "group": "no-baseline-production",
+      "scheduled": 60,
+      "produced": 0,
+      "missed": 60
+    }
+  ]
+}

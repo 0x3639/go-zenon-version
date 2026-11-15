@@ -55,6 +55,18 @@ Select **Momentum timing** in the Pillars section. The expected interval is **10
 
 Every included interval is saved, not just the visible recent rows. **Older momentums** pages through a fixed checked tip; **Return to latest** returns to current data. If chain history changes, start a new view. The first included momentum uses the immediately preceding header, even when that header predates the reporting boundary. Displayed production times use your local timezone; the start label explicitly uses Central time.
 
+### Why the gaps?
+
+This experimental view tests whether pillars with **no production in the first hour after the reporting cutoff** have a higher empty-slot rate in later projected assignments. Group membership uses only that first hour and never changes because of later production. A previously silent pillar that produces later counts against the hypothesis. This group is not the current “Possibly forked out” label.
+
+The baseline is a fixed one-hour interval, inclusive at the start and exclusive at the end. The test covers at most the latest 12 closed five-minute rounds after the baseline. It uses complete linked chain history through the end of each round, so current/future slots are never counted as empty. The UI shows the exact baseline and test windows in your local timezone.
+
+Assignments are reconstructed with current cached RPC weights and historical proof momentums, **not historical election weights**. A round enters the group comparison only if at least five actual producers are observed and all match the replay. Any mismatch, missing proof, or fewer observations excludes that round. All measured empty slots remain in the total; excluded gaps have no accepted pillar attribution. Open the round audit for counts, reasons, and proof links.
+
+Compare empty-slot rates using **assigned slots** as the denominator, not the number of registered pillars. The group cards show assigned, produced, and empty counts. Per-pillar rows retain full producing addresses and baseline counts. The descriptive readout waits for six comparable rounds and at least 20 assignments per group; these are display thresholds, not statistical confidence. A higher miss rate is consistent with missing production from scheduled pillars, but cannot prove another fork. Downtime and new registrations can explain silence. Current registry changes and excluded rounds may bias results; matching observed producers cannot independently validate assignments to empty slots, and repeated slots are not independent trials.
+
+The study uses the existing discovery service and makes no extra public RPC calls. It refreshes every 30 seconds while open, with bounded requests and error backoff. Waiting results have null window bounds. Stale/error results are historical only. This analysis never links a pillar to an IP or software version.
+
 The independent Observer and correlation analysis have been removed. The dashboard makes no requests to that service. Production data never supplies pillar software versions or changes identity links. A pillar version stays unknown unless the existing explicit producing-address-to-peer-key mapping provides fresh evidence.
 
 ## What the observations prove
@@ -106,6 +118,7 @@ Production base URL: `https://tw7v2v7y9rjq7mle1isnlktq.172.245.238.165.sslip.io`
 | `/api/v1/nodes` | `{ generatedAt, nodes }`, for peer-focused clients. |
 | `/api/v1/ips` | `{ generatedAt, ips }`, with one row per observed public IP, node IDs, confirmation count, and available attempt/success times. |
 | `/api/v1/production` | Persistent pillar counts, reporting boundary, completeness, interval statistics, and latest 25 records. Poll at most every 30 seconds. |
+| `/api/v1/production/gaps` | Baseline/later-window missed-slot comparison, coverage, exclusions, group/per-pillar counts, and replay audit. Poll at most every 30 seconds. |
 | `/api/v1/production/momentums` | Saved intervals before an exclusive height; supply a fixed `tipHeight` and `tipHash`, `beforeHeight`, and `limit` (1–100). A changed tip returns 409. |
 | `/api/v1/momentums` | Projected slots, proof references, recent replay checks, observed outcomes, and explicitly linked peer versions. Independent of the network snapshot. |
 | `/healthz` | Process liveness; it is not evidence of full coverage or peer reachability. |
@@ -139,6 +152,8 @@ Suggested answer format, with values computed from the fetched snapshot:
 
 11. **Count actual production with coverage.** Query `/api/v1/production`, record `since`, `generatedAt`, `source`, `status`, `complete`, `remaining`, and the checked heights. Group by full producing address, not name or IP. Partial totals/shares cover only checked records. Stale data must not support current inactivity claims. “Possibly forked out” requires zero production across the entire reporting window, at least one hour of coverage, and complete fresh history. Any positive count excludes that warning; a later one-hour gap is “No production in 1h”. Neither label proves another chain. No production result establishes software version.
 12. **Describe intervals precisely.** `intervalSeconds` is the gap between chain timestamps. Expected cadence is 10 seconds; a longer gap includes missed slots but does not explain their cause. It is not execution time. For older records pin `tipHeight` / `tipHash` and advance `beforeHeight` using `nextBeforeHeight`; stop at null and restart on 409. Never pool histories across changed tips or reporting boundaries.
+
+13. **Interpret the missed-slot study cautiously.** Query `/api/v1/production/gaps`. Cite `generatedAt`, `source`, both windows, and included/excluded rounds. Keep baseline groups fixed and distinguish `all` from `comparable`; unassigned excluded gaps cannot support pillar attribution. Null windows mean waiting. Preserve the current-weight reconstruction caveat, avoid causal claims or p-values, and never call the baseline group a proven fork. Historical/stale results do not describe the network now.
 
 ## Discovery and maintenance
 
