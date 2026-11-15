@@ -5,6 +5,7 @@ go 1.24
 require (
 	github.com/ethereum/go-ethereum v1.10.22
 	github.com/gorilla/websocket v1.5.3
+	github.com/mattn/go-sqlite3 v1.14.53
 	github.com/inconshreveable/log15 v0.0.0-20201112154412-8562bdadbbac
 	github.com/zenon-network/go-zenon v0.0.9-alphanet
 )

@@ -2,8 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Zenon Observatory Discovery API",
-    "version": "1.0.0",
-    "description": "Read-only observations, not a full network census. Version strings are self-reported; unsuccessful handshakes do not prove a peer is offline. Cache peer data and normally poll at most once per minute; momentum projections may be polled every ten seconds."
+    "version": "1.1.0",
+    "description": "Read-only observations, not a full network census. Version strings are self-reported; unsuccessful handshakes do not prove a peer is offline. Cache peer data and normally poll at most once per minute; momentum projections may be polled every ten seconds and production history every thirty seconds."
   },
   "servers": [
     {
@@ -226,6 +226,94 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v1/production": {
+      "get": {
+        "operationId": "getProduction",
+        "summary": "Get actual production since the inclusive configured timestamp; partial/stale status is independent of peer discovery",
+        "responses": {
+          "200": {
+            "description": "No-store snapshot; errors preserve prior generation time. Check status and complete.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductionSnapshot"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Production database unavailable."
+          }
+        }
+      }
+    },
+    "/api/v1/production/momentums": {
+      "get": {
+        "operationId": "getProductionHistory",
+        "summary": "Page through saved intervals at a fixed checked tip",
+        "parameters": [
+          {
+            "name": "tipHeight",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "tipHash",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          },
+          {
+            "name": "beforeHeight",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "description": "Exclusive descending cursor. Start with last.height + 1, then use nextBeforeHeight; null ends paging."
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "At most limit records in descending height order.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductionPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query."
+          },
+          "409": {
+            "description": "Pinned tip is no longer present. Return to latest."
+          },
+          "503": {
+            "description": "History is unavailable."
           }
         }
       }
@@ -858,6 +946,278 @@
           "matched",
           "rounds",
           "slots"
+        ]
+      },
+      "ProductionPillar": {
+        "type": "object",
+        "properties": {
+          "producer": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "registered": {
+            "type": "boolean"
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "lastHeight": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "lastTimestamp": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "producer",
+          "name",
+          "registered",
+          "count",
+          "lastHeight",
+          "lastTimestamp"
+        ]
+      },
+      "ProductionMomentum": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/MomentumHeader"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "intervalSeconds": {
+                "type": "integer",
+                "minimum": 10,
+                "description": "Chain timestamp difference from the preceding momentum, including missed slots; not execution time."
+              }
+            },
+            "required": [
+              "intervalSeconds"
+            ]
+          }
+        ]
+      },
+      "ProductionIntervals": {
+        "type": "object",
+        "properties": {
+          "samples": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "averageSeconds": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 10
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "shortestSeconds": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "longestSeconds": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "latestSeconds": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "samples",
+          "averageSeconds",
+          "shortestSeconds",
+          "longestSeconds",
+          "latestSeconds"
+        ]
+      },
+      "ProductionSnapshot": {
+        "type": "object",
+        "properties": {
+          "schemaVersion": {
+            "const": 1
+          },
+          "generatedAt": {
+            "type": "string",
+            "description": "Last successful checked snapshot time; empty during initial warmup, unchanged on error."
+          },
+          "since": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "enum": [
+              "ready",
+              "backfilling",
+              "stale",
+              "unavailable"
+            ]
+          },
+          "source": {
+            "type": "string"
+          },
+          "error": {
+            "type": "string"
+          },
+          "complete": {
+            "type": "boolean"
+          },
+          "firstHeight": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "last": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MomentumHeader"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "frontier": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MomentumHeader"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "totalMomentums": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "remaining": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "pillars": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductionPillar"
+            }
+          },
+          "intervals": {
+            "$ref": "#/components/schemas/ProductionIntervals"
+          },
+          "recent": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductionMomentum"
+            },
+            "maxItems": 25
+          }
+        },
+        "required": [
+          "schemaVersion",
+          "generatedAt",
+          "since",
+          "status",
+          "source",
+          "complete",
+          "firstHeight",
+          "last",
+          "frontier",
+          "totalMomentums",
+          "remaining",
+          "pillars",
+          "intervals",
+          "recent"
+        ]
+      },
+      "ProductionPage": {
+        "type": "object",
+        "properties": {
+          "schemaVersion": {
+            "const": 1
+          },
+          "tipHeight": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "tipHash": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductionMomentum"
+            },
+            "maxItems": 100
+          },
+          "nextBeforeHeight": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "schemaVersion",
+          "tipHeight",
+          "tipHash",
+          "data",
+          "nextBeforeHeight"
         ]
       },
       "Health": {

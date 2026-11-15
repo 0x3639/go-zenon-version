@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-11-15T17:50:01Z",
+  "since": "2026-11-15T15:49:00Z",
+  "status": "ready",
+  "source": "wss://reference.example:35998",
+  "complete": true,
+  "firstHeight": 101,
+  "last": {
+    "height": 103,
+    "hash": "0000000000000000000000000000000000000000000000000000000000000004",
+    "previousHash": "0000000000000000000000000000000000000000000000000000000000000003",
+    "timestamp": 1794765000,
+    "producer": "z1qr9dd6qmzwr8sazns24lna8zz5e8208nqq2hcx",
+    "chainIdentifier": 1
+  },
+  "frontier": {
+    "height": 103,
+    "hash": "0000000000000000000000000000000000000000000000000000000000000004",
+    "previousHash": "0000000000000000000000000000000000000000000000000000000000000003",
+    "timestamp": 1794765000,
+    "producer": "z1qr9dd6qmzwr8sazns24lna8zz5e8208nqq2hcx",
+    "chainIdentifier": 1
+  },
+  "totalMomentums": 3,
+  "remaining": 0,
+  "pillars": [
+    {
+      "producer": "z1qr9dd6qmzwr8sazns24lna8zz5e8208nqq2hcx",
+      "name": "Alpha",
+      "registered": true,
+      "count": 2,
+      "lastHeight": 103,
+      "lastTimestamp": 1794765000
+    },
+    {
+      "producer": "z1qrjdhy65zds69a96xlhheu4sy689k34x4hpse0",
+      "name": "Beta",
+      "registered": true,
+      "count": 1,
+      "lastHeight": 102,
+      "lastTimestamp": 1794764970
+    },
+    {
+      "producer": "z1qzdwhpqwtz5yhrp7nuk7cl6zhjp3ywn57l3l9v",
+      "name": "Quiet",
+      "registered": true,
+      "count": 0,
+      "lastHeight": null,
+      "lastTimestamp": null
+    }
+  ],
+  "intervals": {
+    "samples": 3,
+    "averageSeconds": 20,
+    "shortestSeconds": 10,
+    "longestSeconds": 30,
+    "latestSeconds": 30
+  },
+  "recent": [
+    {
+      "height": 103,
+      "hash": "0000000000000000000000000000000000000000000000000000000000000004",
+      "previousHash": "0000000000000000000000000000000000000000000000000000000000000003",
+      "timestamp": 1794765000,
+      "producer": "z1qr9dd6qmzwr8sazns24lna8zz5e8208nqq2hcx",
+      "chainIdentifier": 1,
+      "intervalSeconds": 30
+    },
+    {
+      "height": 102,
+      "hash": "0000000000000000000000000000000000000000000000000000000000000003",
+      "previousHash": "0000000000000000000000000000000000000000000000000000000000000002",
+      "timestamp": 1794764970,
+      "producer": "z1qrjdhy65zds69a96xlhheu4sy689k34x4hpse0",
+      "chainIdentifier": 1,
+      "intervalSeconds": 20
+    },
+    {
+      "height": 101,
+      "hash": "0000000000000000000000000000000000000000000000000000000000000002",
+      "previousHash": "0000000000000000000000000000000000000000000000000000000000000001",
+      "timestamp": 1794764950,
+      "producer": "z1qr9dd6qmzwr8sazns24lna8zz5e8208nqq2hcx",
+      "chainIdentifier": 1,
+      "intervalSeconds": 10
+    }
+  ]
+}

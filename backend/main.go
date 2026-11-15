@@ -69,6 +69,7 @@ func loadConfig() config {
 
 type store struct {
 	schedule         *scheduleStore
+	production       *productionStore
 	mu               sync.RWMutex
 	snapshot         Snapshot
 	body, nodes, ips []byte
@@ -115,6 +116,14 @@ func handler(data *store, origins map[string]bool) http.Handler {
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
+		if r.URL.Path == "/api/v1/production" {
+			data.production.serve(w, r)
+			return
+		}
+		if r.URL.Path == "/api/v1/production/momentums" {
+			data.production.serveHistory(w, r)
+			return
+		}
 		if r.URL.Path == "/api/v1/momentums" {
 			data.schedule.serve(w, r)
 			return
@@ -426,6 +435,15 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 	go runSchedule(ctx, c, data, links)
+	productionDone := make(chan struct{})
+	data.production, err = openProduction(filepath.Join(c.dir, "production.sqlite"), env("PRODUCTION_SINCE", defaultProductionSince))
+	if err != nil {
+		log.Printf("production history disabled: %v", err)
+		close(productionDone)
+	} else {
+		defer data.production.db.Close()
+		go func() { defer close(productionDone); data.production.run(ctx, c.seeds) }()
+	}
 	done := make(chan struct{})
 	go func() {
 		defer close(done)
@@ -454,6 +472,7 @@ func main() {
 	shutdown, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	server.Shutdown(shutdown)
+	<-productionDone
 	select {
 	case <-done:
 	case <-shutdown.Done():
