@@ -116,6 +116,10 @@ func handler(data *store, origins map[string]bool) http.Handler {
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
+		if r.URL.Path == "/api/v1/production/gaps" {
+			data.production.serveGaps(w, r)
+			return
+		}
 		if r.URL.Path == "/api/v1/production" {
 			data.production.serve(w, r)
 			return
