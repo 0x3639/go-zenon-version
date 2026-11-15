@@ -1,9 +1,20 @@
-import { compareVersions } from './network.ts';
+import { compareVersions, parseVersion } from './network.ts';
 import type { NodeRecord, Release } from './network.ts';
 
 // Neighbor referrals have no software-name evidence. Keep RPC/peer/P2P reports,
 // even when their version is unparseable or the latest connection attempt failed.
 export const isDiscoveryOnly = (node: NodeRecord) => node.evidence === 'discovery';
+
+// An explicit dashboard policy, not a claim about a peer's current chain.
+export const MIN_PEER_VERSION = 'v0.0.9';
+export function scopePeersByVersion(nodes: NodeRecord[]) {
+  const visible: NodeRecord[] = [], hidden: NodeRecord[] = [];
+  for (const node of nodes) {
+    const reported = parseVersion(node.version);
+    (reported !== null && compareVersions(reported, MIN_PEER_VERSION) < 0 ? hidden : visible).push(node);
+  }
+  return { visible, hidden };
+}
 
 export function versionSummary(nodes: NodeRecord[], release: Release | null) {
   const known = nodes.filter(n => !isDiscoveryOnly(n) && n.version !== null);

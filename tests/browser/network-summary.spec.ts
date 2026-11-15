@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { readFile } from 'node:fs/promises';
 const discovery = 'https://tw7v2v7y9rjq7mle1isnlktq.172.245.238.165.sslip.io';
 const observer = 'https://zsjo46q7s0qcmaklbmak7gfp.172.245.238.165.sslip.io';
 const at = '2026-11-14T10:45:00Z';
@@ -10,23 +11,27 @@ const nodes = Array.from({ length: 166 }, (_, i) => {
     handshake: { status: i < 33 ? 'confirmed' : 'failed', ip: `8.8.4.${i + 1}`, port: 35995, attemptedAt: at } };
 });
 
-test('referrals remain accessible without inflating overview or the newer observed version share', async ({ page }, info) => {
+test('post-spork scope excludes older peers from overview, explorer, seed markers and exports', async ({ page }, info) => {
   await page.clock.install({ time: new Date(at) });
-  const snapshot = { schemaVersion: 1, mode: 'discovery', generatedAt: at, nodes, sources: [],
+  const snapshot = { schemaVersion: 1, mode: 'discovery', generatedAt: at, nodes, sources: [{ endpoint: 'wss://old-seed.example:35998', status: 'ok', nodeId: nodes[47].id, peerCount: 5, checkedAt: at }],
     release: { version: 'v0.0.9', tag: 'v0.0.9-alphanet', url: 'https://github.com/zenon-network/go-zenon/releases/tag/v0.0.9-alphanet', checkedAt: at } };
   await page.route('**/data/network.json', route => route.fulfill({ json: snapshot }));
   await page.route(`${discovery}/**`, route => route.request().url().endsWith('/network') ? route.fulfill({ json: snapshot }) : route.fulfill({ status: 503, body: '{}' }));
   await page.route(`${observer}/**`, route => route.fulfill({ status: 503, body: '{}' }));
   await page.goto('/');
   const stats = page.getByRole('region', { name: 'Network statistics' });
-  await expect(stats.locator('.stat').nth(0)).toContainText('64');
+  await expect(stats.locator('.stat').nth(0)).toContainText('51');
   await expect(stats.locator('.stat').nth(2)).toContainText('Highest observed version');
-  await expect(stats.locator('.stat').nth(2)).toContainText('73');
+  await expect(stats.locator('.stat').nth(2)).toContainText('92');
   await expect(stats.locator('.stat').nth(2)).toContainText('v0.0.10');
-  await expect(stats.locator('.stat').nth(2)).toContainText('47 of 64 peers with a known version');
+  await expect(stats.locator('.stat').nth(2)).toContainText('47 of 51 peers with a known version');
   await expect(page.locator('.release-source')).toContainText('GitHub published release: v0.0.9');
   await expect(page.locator('.discovery-summary')).toContainText('102 discovery-only candidates');
-  await expect(page.locator('#peers .count-label')).toHaveText('64');
+  await expect(page.getByRole('note', { name: 'Peer version scope' })).toContainText('v0.0.9 and newer · 13 older-version peers hidden');
+  await expect(page.locator('.legend')).not.toContainText('v0.0.8');
+  await expect(page.getByLabel('Filter by version').locator('option')).toHaveText(['All versions', 'v0.0.10', 'v0.0.9', 'Unknown']);
+  await expect(page.locator('.constellation title').filter({ hasText: 'old-seed.example' })).toHaveCount(0);
+  await expect(page.locator('#peers .count-label')).toHaveText('51');
   await expect(page.getByLabel('Filter by evidence')).toHaveValue('reported');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBeTruthy();
   await page.screenshot({ path: `.qa/network-summary-${info.project.name}.png`, fullPage: true });
@@ -43,10 +48,40 @@ test('referrals remain accessible without inflating overview or the newer observ
   await expect(page.getByLabel('Filter by version')).toHaveValue('v0.0.10');
   await versionLegend.click();
   await expect(page.getByLabel('Filter by version')).toHaveValue('all');
-  await expect(page.locator('#peers .count-label')).toHaveText('64');
+  await expect(page.locator('#peers .count-label')).toHaveText('51');
   await page.getByLabel('Filter by evidence').selectOption('all');
-  await expect(page.locator('#peers .count-label')).toHaveText('166');
+  await expect(page.locator('#peers .count-label')).toHaveText('153');
+  for (const button of ['Export CSV', 'Unique IPs']) {
+    const pending = page.waitForEvent('download');
+    await page.getByRole('button', { name: button, exact: true }).click();
+    const downloaded = await pending;
+    const csv = await readFile((await downloaded.path())!, 'utf8');
+    expect(csv.split('\r\n')).toHaveLength(154);
+    expect(csv).not.toContain('8.8.4.48');
+    expect(csv).not.toContain('8.8.4.64');
+    expect(csv).toContain('8.8.4.60');
+    expect(csv).toContain('8.8.4.65');
+    if (button === 'Export CSV') { expect(csv).not.toContain('v0.0.8'); expect(csv).not.toContain('"v0.0.1"'); }
+  }
+  await page.getByLabel('Search peers').fill('8.8.4.48');
+  await expect(page.locator('#peers .count-label')).toHaveText('0');
+  await page.getByRole('button', { name: 'Clear filters', exact: true }).click();
+  await expect(page.locator('#peers .count-label')).toHaveText('51');
   await page.getByLabel('Filter by evidence').selectOption('reported');
   await page.getByLabel('Filter by P2P connection').selectOption('failed');
-  await expect(page.locator('#peers .count-label')).toHaveText('31');
+  await expect(page.locator('#peers .count-label')).toHaveText('18');
+});
+
+test('a saved snapshot containing only older versions explains its empty peer view', async ({ page }) => {
+  await page.clock.install({ time: new Date(at) });
+  const snapshot = { schemaVersion: 1, mode: 'discovery', generatedAt: at, nodes: [nodes[47]], sources: [], release: null };
+  await page.route('**/data/network.json', route => route.fulfill({ json: snapshot }));
+  await page.route(`${discovery}/**`, route => route.fulfill({ status: 503, body: '{}' }));
+  await page.route(`${observer}/**`, route => route.fulfill({ status: 503, body: '{}' }));
+  await page.goto('/');
+  await expect(page.getByRole('note', { name: 'Peer version scope' })).toContainText('1 older-version peer hidden');
+  await expect(page.getByRole('heading', { name: 'No peers match the version scope' })).toBeVisible();
+  await expect(page.locator('.distribution')).toContainText('No reported peers in this version scope.');
+  await expect(page.getByRole('button', { name: 'Export CSV', exact: true })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Unique IPs', exact: true })).toBeDisabled();
 });

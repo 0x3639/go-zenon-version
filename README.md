@@ -59,9 +59,15 @@ The service retains observations for 24 hours and stores its pending queue in `/
 
 The peer explorer labels **go-zenon seeds** by public-key membership in the validator's `p2p.DefaultSeeders` list, and **RPC seeds** by the configured endpoints' own identities. Use **Filter by node role** to show either type, all seeds, or other peers. CSV exports include those roles. Seed-list membership does not imply reachability: only observed peers enter node totals. The 116-entry catalog in `src/go-zenon-seeds.ts` is pinned to upstream commit `bb39e31c608dc397a91b98b21b096bca99a9f4d6` and matches the backend's `v0.0.9-alphanet` dependency; refresh it when updating the upstream seed list. IP addresses alone never assign a seed label.
 
+### Peer version scope
+
+Following the spork, the peer dashboard excludes advertised versions below **v0.0.9**, using the explicit `MIN_PEER_VERSION` policy in `src/network-summary.ts`. The cutoff is inclusive and independent of the latest release lookup. It filters counts, charts, map seed markers, the explorer, and exports consistently, including fallback data. Unknown versions remain unclassified. Older versions are not deleted from the collector. The scope notice reports the hidden count; it never labels retained peers as belonging to a verified chain.
+
+This cutoff follows the requested threshold. The [v0.0.10 release notes](https://github.com/zenon-network/go-zenon-releases/releases/tag/v0.0.10) require v0.0.10 for the spork renewal, so a visible v0.0.9 peer is not a compatibility endorsement. Observer history and momentum records retain their recorded versions and dates. Crawl diagnostics describe the full collector workload. This is a frontend change: merge to publish GitHub Pages; no Coolify redeploy is needed for the version scope.
+
 ### Peer totals and release labels
 
-The overview and default explorer show **Reported peers** (RPC, peer-list, or P2P software-name evidence). Discovery-only neighbor referrals have their own count and **View discovery candidates** action; **All observations** retains every API identity. Failed inbound attempts and unparseable software reports remain visible. Peer collection, retention, and identity/IP deduplication are unchanged.
+The overview and default explorer show **Reported peers** (RPC, peer-list, or P2P software-name evidence). Discovery-only neighbor referrals have their own count and **View discovery candidates** action; **All in scope** retains every API identity that passes the version cutoff. Failed inbound attempts and unparseable software reports remain visible. Peer collection, retention, and identity/IP deduplication are unchanged.
 
 The adoption card counts only peers with known versions. A version newer than the GitHub release record is shown as **Highest observed version**, with the published version and lookup time separately visible. Peer advertisements do not certify releases. With no release metadata it also shows **Highest observed version**, omitting the published record and lookup time. With metadata and no newer observed version, it shows **Published release adoption**. No version is hardcoded. Charts include all reported peers, including unknown versions; the adoption denominator is narrower.
 
